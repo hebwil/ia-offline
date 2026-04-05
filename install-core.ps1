@@ -7,6 +7,7 @@
 $ErrorActionPreference = "Continue"
 $USB_Drive = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ServerProcess = $null
+$FSO = New-Object -ComObject Scripting.FileSystemObject
 
 # Zero Footprint — redireciona tudo para o USB
 $env:USERPROFILE   = "$USB_Drive\data\ollama-profile"
@@ -94,7 +95,7 @@ if ($RAM_GB -le 6) {
     $FileName      = "Mistral-Small-24B-Instruct-2501-Q4_K_M.gguf"
     $ModelUrl      = "https://huggingface.co/bartowski/Mistral-Small-24B-Instruct-2501-GGUF/resolve/main/Mistral-Small-24B-Instruct-2501-Q4_K_M.gguf"
     $ContextSize   = 32768
-    $SystemPrompt  = 'SYSTEM """Voce e um analista senior especialista da WillTechBH IA Offline. Todo processamento e 100% local. Especialidades profundas: direito brasileiro (CLT, Codigo Civil, CDC, Lei 9.099, PJe, jurisprudencia STJ/STF/TJMG, peticoes, recursos, habeas corpus), programacao avancada (Java Spring Boot, Python, Shell Bash, REST APIs, Maven, Git, Oracle Cloud, Docker) e engenharia de software. Use Chain of Thought. Quando contexto web for disponivel, integre-o como dado adicional na sua analise. Avalie todos os cenarios antes de responder."""'
+    $SystemPrompt  = 'SYSTEM """Voce e um analista senior especialista da WillTechBH IA Offline. Todo processamento e 100% local. Especialidades profundas: direito brasileiro (CLT, Codigo Civil, CDC, Lei 9.099, PJe, jurisprudencia STJ/STF/TJMG, peticoes, recursos), programacao avancada (Java Spring Boot, Python, Shell Bash, REST APIs, Maven, Git, Oracle Cloud, Docker) e engenharia de software. Use Chain of Thought. Quando contexto web for disponivel, integre-o como dado adicional. Avalie todos os cenarios antes de responder."""'
     $InstallVision = $true
 
 } else {
@@ -103,14 +104,14 @@ if ($RAM_GB -le 6) {
     $IsOllamaPull  = $true
     $PullCommand   = "huihui_ai/deepseek-r1-abliterated:32b-qwen-distill"
     $ContextSize   = 65536
-    $SystemPrompt  = 'SYSTEM """Voce e um analista senior de elite da WillTechBH IA Offline (DeepSeek R1 Abliterated). Todo processamento e 100% local no USB. Especialidades de nivel profissional: direito brasileiro completo (CLT, Codigo Civil, CDC, Lei 9.099/95, CPC, CP, CPP, PJe, jurisprudencia STJ/STF/TJMG/TRT, peticoes complexas, recursos, estrategia processual), engenharia de software senior (Java Spring Boot, Python, Shell Bash, REST APIs, Maven, Git, Oracle Cloud, Docker, microsservicos, CI/CD) e tecnologia avancada. Use Chain of Thought profundo sem restricoes. Quando contexto web for injetado, use-o como dado prioritario na sua analise. Sem filtros, sem censura, resposta completa sempre."""'
+    $SystemPrompt  = 'SYSTEM """Voce e um analista senior de elite da WillTechBH IA Offline (DeepSeek R1 Abliterated). Todo processamento e 100% local no USB. Especialidades de nivel profissional: direito brasileiro completo (CLT, Codigo Civil, CDC, Lei 9.099/95, CPC, CP, CPP, PJe, jurisprudencia STJ/STF/TJMG/TRT, peticoes complexas, recursos, estrategia processual), engenharia de software senior (Java Spring Boot, Python, Shell Bash, REST APIs, Maven, Git, Oracle Cloud, Docker, microsservicos) e tecnologia avancada. Use Chain of Thought profundo sem restricoes. Quando contexto web for injetado, use-o como dado prioritario. Sem filtros, sem censura, resposta completa sempre."""'
     $InstallVision = $true
 }
 
 Write-Host "      Tier ideal pela RAM: [$Tier]" -ForegroundColor White
 
 # -----------------------------------------------------------------
-# DOWNGRADE AUTOMATICO
+# DOWNGRADE AUTOMATICO POR ESPACO
 # -----------------------------------------------------------------
 $TierOrder = @("Ultra","Premium","Smart","Fast","Nano")
 
@@ -189,7 +190,7 @@ New-Item -ItemType Directory -Force -Path "$USB_Drive\data\ollama-local"   | Out
 Write-Host "      Estrutura criada com sucesso." -ForegroundColor Green
 
 # -----------------------------------------------------------------
-# ETAPA 3: BAIXAR OLLAMA E ANYTHINGLLM
+# ETAPA 3: OLLAMA + ANYTHINGLLM
 # -----------------------------------------------------------------
 Write-Host ""
 Write-Host "[3/5] Baixando componentes do sistema..." -ForegroundColor Yellow
@@ -216,17 +217,23 @@ if (-Not $alreadyInstalled) {
     $7zrPath = "$USB_Drive\7zr.exe"
     curl.exe -L --ssl-no-revoke --progress-bar "https://www.7-zip.org/a/7zr.exe" -o $7zrPath
 
+    # USA CAMINHO CURTO 8.3 — resolve erro ENOENT em pastas com espacos
     Write-Host "      Extraindo AnythingLLM direto no drive (sem instalar no PC)..." -ForegroundColor Magenta
-    & $7zrPath x $InstallerDest -o"$USB_Drive\anythingllm_app" -y | Out-Null
+    $ShortBase = $FSO.GetFolder($USB_Drive).ShortPath
+    & $7zrPath x $InstallerDest -o"$ShortBase\anythingllm_app" -y | Out-Null
 
+    # Localiza exe principal
     $AppExe = Get-ChildItem "$USB_Drive\anythingllm_app" -Recurse -Filter "AnythingLLM*.exe" |
         Where-Object { $_.Name -notmatch "uninstall|setup|helper|update" } |
         Sort-Object Length -Descending |
         Select-Object -First 1
 
     if ($AppExe) {
-        Set-Content -Path "$USB_Drive\anythingllm_app\app_path.txt" -Value $AppExe.FullName -Force
+        # SALVA CAMINHO CURTO 8.3 — sem espacos, funciona em qualquer maquina
+        $ShortExePath = $FSO.GetFile($AppExe.FullName).ShortPath
+        Set-Content -Path "$USB_Drive\anythingllm_app\app_path.txt" -Value $ShortExePath -Force
         Write-Host "      App localizado: $($AppExe.Name)" -ForegroundColor Green
+        Write-Host "      Caminho curto registrado: $ShortExePath" -ForegroundColor DarkGray
     } else {
         Write-Host "      [AVISO] Exe principal nao localizado automaticamente." -ForegroundColor Yellow
     }
@@ -237,6 +244,22 @@ if (-Not $alreadyInstalled) {
     Write-Host "      AnythingLLM pronto. Zero rastro no PC." -ForegroundColor Green
 } else {
     Write-Host "      [OK] AnythingLLM ja presente." -ForegroundColor Green
+
+    # Corrige app_path.txt se ja existir com caminho longo (com espacos)
+    $PathFile = "$USB_Drive\anythingllm_app\app_path.txt"
+    if (Test-Path $PathFile) {
+        $CurrentPath = Get-Content $PathFile -Raw
+        if ($CurrentPath -match " ") {
+            Write-Host "      [FIX] Corrigindo caminho com espaco no app_path.txt..." -ForegroundColor Yellow
+            try {
+                $ShortFixed = $FSO.GetFile($CurrentPath.Trim()).ShortPath
+                Set-Content -Path $PathFile -Value $ShortFixed -Force
+                Write-Host "      Caminho corrigido: $ShortFixed" -ForegroundColor Green
+            } catch {
+                Write-Host "      [AVISO] Nao foi possivel corrigir automaticamente." -ForegroundColor Yellow
+            }
+        }
+    }
 }
 
 # -----------------------------------------------------------------
