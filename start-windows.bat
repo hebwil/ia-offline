@@ -7,7 +7,7 @@ color 0b
 mode con: cols=82 lines=32
 
 :: ------------------------------------------------------------------
-:: ZERO FOOTPRINT — tudo fica no drive, nada no PC hospedeiro
+:: ZERO FOOTPRINT â€” tudo fica no drive, nada no PC hospedeiro
 :: ------------------------------------------------------------------
 set "OLLAMA_MODELS=%~dp0ollama\data"
 set "APPDATA=%~dp0data\anythingllm"
@@ -22,7 +22,7 @@ echo   Analisando hardware e conectividade...
 echo.
 
 :: ======================================================
-:: 1. DETECCAO DE INTERNET — bonus, nunca obrigacao
+:: 1. DETECCAO DE INTERNET â€” bonus, nunca obrigacao
 :: ======================================================
 set "WEB_MODE=OFFLINE"
 set "WEB_MSG=Air-Gap Total - 100pct Local"
@@ -98,19 +98,19 @@ if "!WEB_BONUS!"=="1" set "FEATURES=!FEATURES! + Web Tempo Real"
 cls
 echo.
 echo   +--------------------------------------------------------------+
-echo   ¦          WILLTECHBH IA OFFLINE  -  AUTO-MODULACAO            ¦
-echo   ¦--------------------------------------------------------------¦
-echo   ¦                                                              ¦
-echo   ¦  RAM Detectada.....: !RAM_GB! GB
-echo   ¦  Acelerador........: !ACCEL_MSG!
-echo   ¦  Conectividade.....: !WEB_MSG!
-echo   ¦  Perfil Ativo......: !PROFILE!
-echo   ¦  Modelo............: !TARGET_MODEL!
-echo   ¦  Funcionalidades...: !FEATURES!
-echo   ¦                                                              ¦
-echo   ¦  Processamento.....: 100pct LOCAL no seu drive               ¦
-echo   ¦  Privacidade.......: Zero dados enviados para nuvem          ¦
-echo   ¦                                                              ¦
+echo   Â¦          WILLTECHBH IA OFFLINE  -  AUTO-MODULACAO            Â¦
+echo   Â¦--------------------------------------------------------------Â¦
+echo   Â¦                                                              Â¦
+echo   Â¦  RAM Detectada.....: !RAM_GB! GB
+echo   Â¦  Acelerador........: !ACCEL_MSG!
+echo   Â¦  Conectividade.....: !WEB_MSG!
+echo   Â¦  Perfil Ativo......: !PROFILE!
+echo   Â¦  Modelo............: !TARGET_MODEL!
+echo   Â¦  Funcionalidades...: !FEATURES!
+echo   Â¦                                                              Â¦
+echo   Â¦  Processamento.....: 100pct LOCAL no seu drive               Â¦
+echo   Â¦  Privacidade.......: Zero dados enviados para nuvem          Â¦
+echo   Â¦                                                              Â¦
 echo   +--------------------------------------------------------------+
 echo.
 
@@ -137,7 +137,7 @@ if %errorlevel% NEQ 0 (
 )
 
 :: ======================================================
-:: 6. RAM-SHIFT — modelo na memoria antes de abrir chat
+:: 6. RAM-SHIFT â€” modelo na memoria antes de abrir chat
 :: ======================================================
 echo   [+] RAM-Shift - carregando !TARGET_MODEL! na memoria...
 curl -s --max-time 15 -X POST http://localhost:11434/api/generate ^
@@ -145,7 +145,7 @@ curl -s --max-time 15 -X POST http://localhost:11434/api/generate ^
   -d "{\"model\":\"!TARGET_MODEL!\",\"prompt\":\"init\",\"stream\":false}" >nul 2>&1
 
 :: ======================================================
-:: 7. WEB BONUS — silencioso, nunca bloqueia o sistema
+:: 7. WEB BONUS â€” silencioso, nunca bloqueia o sistema
 :: ======================================================
 if "!WEB_BONUS!"=="1" (
     echo   [+] Ativando Web Bonus silenciosamente...
@@ -156,7 +156,7 @@ if "!WEB_BONUS!"=="1" (
       -H "Content-Type: application/json" ^
       -d "{\"AgentSearchProvider\":\"duckduckgo\",\"AgentWebscrapeProvider\":\"native\"}" >nul 2>&1
 
-    :: Se falhar — ignora silenciosamente, sistema continua 100% funcional
+    :: Se falhar â€” ignora silenciosamente, sistema continua 100% funcional
 )
 
 :: ======================================================
@@ -189,27 +189,27 @@ if defined ANYLLM_EXE (
 )
 
 :: ======================================================
-:: 9. TELA DE STATUS — mantem o servidor ativo
+:: 9. TELA DE STATUS â€” mantem o servidor ativo
 :: ======================================================
 :RUNNING_LOOP
 cls
 echo.
 echo   +--------------------------------------------------------------+
-echo   ¦       WILLTECHBH IA OFFLINE  -  SISTEMA ATIVO               ¦
-echo   ¦--------------------------------------------------------------¦
-echo   ¦                                                              ¦
-echo   ¦  Perfil...: !PROFILE!
-echo   ¦  Modelo...: !TARGET_MODEL!
-echo   ¦  GPU......: !ACCEL_MSG!
-echo   ¦  Rede.....: !WEB_MSG!
-echo   ¦  Recursos.: !FEATURES!
-echo   ¦                                                              ¦
-echo   ¦  Processamento: 100pct LOCAL no seu drive                    ¦
-echo   ¦  Privacidade..: Zero dados enviados para nuvem               ¦
-echo   ¦                                                              ¦
-echo   ¦  Use a janela de chat livremente.                            ¦
-echo   ¦  MANTENHA ESTA JANELA PRETA ABERTA.                          ¦
-echo   ¦                                                              ¦
+echo   Â¦       WILLTECHBH IA OFFLINE  -  SISTEMA ATIVO               Â¦
+echo   Â¦--------------------------------------------------------------Â¦
+echo   Â¦                                                              Â¦
+echo   Â¦  Perfil...: !PROFILE!
+echo   Â¦  Modelo...: !TARGET_MODEL!
+echo   Â¦  GPU......: !ACCEL_MSG!
+echo   Â¦  Rede.....: !WEB_MSG!
+echo   Â¦  Recursos.: !FEATURES!
+echo   Â¦                                                              Â¦
+echo   Â¦  Processamento: 100pct LOCAL no seu drive                    Â¦
+echo   Â¦  Privacidade..: Zero dados enviados para nuvem               Â¦
+echo   Â¦                                                              Â¦
+echo   Â¦  Use a janela de chat livremente.                            Â¦
+echo   Â¦  MANTENHA ESTA JANELA PRETA ABERTA.                          Â¦
+echo   Â¦                                                              Â¦
 echo   +--------------------------------------------------------------+
 echo.
 echo   Pressione qualquer tecla para desligar com seguranca...
