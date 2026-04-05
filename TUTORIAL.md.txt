@@ -1,0 +1,32 @@
+# 📖 WillTechBH IA Offline — Tutorial de Uso
+
+---
+
+## 🤔 O que é isso?
+
+É uma **Inteligência Artificial completa** que roda direto do seu Pen Drive ou SSD.
+Não instala **nada** no computador. Não precisa de internet para funcionar.
+Basta plugar e usar.
+
+---
+
+## ✅ O que você precisa
+
+- Um **Pen Drive ou SSD Externo** com pelo menos 4 GB livres
+- Um **computador com Windows**
+- **Internet** apenas na primeira vez (para instalar)
+
+---
+
+## 🚀 PASSO A PASSO
+
+### 1️⃣ Primeira vez — Instalação
+
+> Faça isso **apenas uma vez**, num PC com internet.
+
+1. Copie os arquivos para a **raiz do Pen Drive**
+2. Abra o Pen Drive no Windows Explorer
+3. Dê **duplo clique** em `install.bat`
+4. Uma tela preta vai abrir — **não feche**
+5. O sistema vai detectar o hardware e baixar a IA ideal automaticamente
+6. Aguarde aparecer a mensagem:
