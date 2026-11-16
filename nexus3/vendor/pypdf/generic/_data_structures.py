@@ -95,7 +95,11 @@ from ._utils import read_hex_string_from_stream, read_string_from_stream
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
-    from typing_extensions import Self
+    # Python 3.10 still satisfies the documented minimum; avoid a pip dependency
+    # for a symbol that is only used in runtime-irrelevant annotations.
+    from typing import TypeVar
+
+    Self = TypeVar("Self")
 
 logger = logging.getLogger(__name__)
 IndirectPattern = re.compile(rb"[+-]?(\d+)\s+(\d+)\s+R[^a-zA-Z]")

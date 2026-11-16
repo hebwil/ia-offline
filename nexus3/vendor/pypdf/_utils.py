@@ -59,7 +59,11 @@ else:
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
-    from typing_extensions import Self
+    # Python 3.10 still satisfies the documented minimum; avoid a pip dependency
+    # for a symbol that is only used in runtime-irrelevant annotations.
+    from typing import TypeVar
+
+    Self = TypeVar("Self")
 
 from .errors import (
     STREAM_TRUNCATED_PREMATURELY,
