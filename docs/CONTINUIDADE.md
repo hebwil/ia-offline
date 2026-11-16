@@ -107,7 +107,9 @@ Relatórios: `_audit/00-ESTADO-ORIGINAL.md`, `_audit/02-RELATORIO-FINAL.md`, `v3
 - `dist/SHA256SUMS.txt` gerado e verificado para os três pacotes publicáveis.
 - `gh` autenticado como `hebwil` com permissão `ADMIN` no repositório público `hebwil/ia-offline`.
 
-**Estado no momento desta correção:** branch `develop/v3.0` em `fedc167`, sem remote configurado localmente, `main` remota e tags/releases `v1.0.0`/`v2.0.0` intactas. Próxima ação: commit das correções, push da branch, execução e verificação da CI antes de qualquer tag/release.
+**Estado atual:** commit `a84c481` contém as correções; remote oficial `https://github.com/hebwil/ia-offline.git` configurado. O push de `develop/v3.0` foi rejeitado pelo GitHub porque o token OAuth do `gh` não possui o escopo `workflow`, obrigatório para criar `.github/workflows/ci.yml`. Uma tentativa com deploy key SSH temporária recebeu a mesma rejeição; a chave foi removida. Nenhuma branch remota `develop/v3.0`, tag ou release 3.0 foi criada. `main`, `v1.0.0`, `v2.0.0` e a release 2.0 permanecem intactas.
+
+**Próxima ação (credencial, não autorização de publicação):** expandir o token com `gh auth refresh -h github.com -s workflow`, repetir o push e somente então executar CI, tag e release.
 
 ---
 
