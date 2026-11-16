@@ -4,8 +4,19 @@
 
 > IA para quem precisa de resultado, não de assinatura.
 
-Status: **`develop/v3.0` — versão de desenvolvimento funcional, não publicada.**
-Nada foi enviado ao repositório original. As tags `v1.0.0` e `v2.0.0` permanecem intactas.
+Status: **`v3.0.0-preview.1` — Pre-release.** Homologação por CI em execução; veja a matriz abaixo e `docs/CONTINUIDADE.md`.
+As tags `v1.0.0` e `v2.0.0` e todos os arquivos da versão 2.0 permanecem intactos.
+
+**Matriz de compatibilidade**
+
+| Plataforma | Status | Evidência |
+|---|---|---|
+| Windows x64 | homologada via CI | runner `windows-latest`, inferência real (job `homologacao`) |
+| Linux x64 | homologada via CI | runner `ubuntu-latest`, inferência real (job `homologacao`) |
+| macOS ARM64 | homologada | E2E real local + pacote Offline Complete extraído e testado + CI `macos-14` |
+| Windows ARM64 · Linux ARM64 · macOS Intel | experimentais | binário no manifesto, sem teste real — não homologadas |
+
+> "Homologada" exige inferência real comprovada, não apenas presença do binário no manifesto.
 
 ---
 
@@ -59,8 +70,20 @@ No Windows: `scripts\start-windows.bat`. No macOS: `scripts/start-macos.command`
 | `nexus3.py models recommend` | recomenda modelo para o hardware atual |
 | `nexus3.py models install <id> --yes` | baixa e verifica um modelo |
 | `nexus3.py models select <id>` | troca o modelo ativo com segurança |
-| `nexus3.py selftest` | executa os 37 testes automatizados |
-| `nexus3.py build` | gera pacotes portáteis em `dist/` |
+| `nexus3.py doctor --informational` | relatório sem usar o exit code como gate (usado no CI) |
+| `nexus3.py selftest` | executa os 64 testes automatizados |
+| `nexus3.py build --profile {lite\|offline\|all}` | gera pacotes Nexus Lite / Offline Complete em `dist/` |
+| `nexus3.py update <pacote>` | atualiza o código preservando dados, modelos e configuração |
+| `python scripts/homologate.py` | prova de inferência real (10 checks) usada na homologação |
+
+## Pacotes
+
+| Pacote | Conteúdo | Uso |
+|---|---|---|
+| **Nexus Lite** (`.zip` / `.tar.gz`, ~400 KB) | código, UI, scripts, docs | obtém motor e modelo no primeiro uso, mediante autorização |
+| **Nexus Offline Complete** (`.tar.gz`, ~618 MB) | código + llama-server b12444 + Qwen3 0.6B Q8_0, todos verificados | funciona sem internet após a preparação |
+
+Pacote Offline Complete publicado apenas para **macOS ARM64** (plataforma com motor e modelo verificados e inferência real comprovada). Conferência de integridade em `dist/SHA256SUMS.txt`.
 
 ---
 
@@ -96,6 +119,7 @@ O context é limitado por RAM disponível e pelo teto do modelo. Se não houver 
 - `docs/INSTALACAO.md` — primeiro uso por plataforma e sistemas de arquivos.
 - `docs/TESTES.md` — evidências reais de execução.
 - `docs/LIMITACOES.md` — pendências e itens não homologados.
+- `docs/CONTINUIDADE.md` — registro de decisões, commits, testes e retomada.
 - `docs/THIRD-PARTY.md` — licenças e atribuições.
 - `../_audit/00-ESTADO-ORIGINAL.md` — auditoria da v2.0.2.
 - `../_audit/01-ARQUITETURA-V3.md` — pesquisa e justificativas.
