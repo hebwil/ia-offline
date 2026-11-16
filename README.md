@@ -1,131 +1,112 @@
+<div align="center">
+
+![Nexus Portable 3.0](assets/nexus-hero.svg)
+
 # WillTechBH IA Nexus Portable 3.0
 
-**IA local, portátil e realmente multiplataforma — Windows · macOS · Linux.**
+**Uma IA local para seus documentos, conversas e tarefas — executada no seu computador.**
 
-> IA para quem precisa de resultado, não de assinatura.
+[![Preview](https://img.shields.io/badge/vers%C3%A3o-v3.0.0--preview.1-805ad5?style=for-the-badge)](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1)
+[![CI](https://img.shields.io/github/actions/workflow/status/hebwil/ia-offline/ci.yml?branch=develop%2Fv3.0&style=for-the-badge&label=CI)](https://github.com/hebwil/ia-offline/actions/runs/43973139797)
+![Windows](https://img.shields.io/badge/Windows-x64-1677ee?style=flat-square)
+![Linux](https://img.shields.io/badge/Linux-x64-333333?style=flat-square)
+![macOS](https://img.shields.io/badge/macOS-ARM64-333333?style=flat-square)
 
-Status: **`v3.0.0-preview.1` — Pre-release.** Homologação aprovada em CI para Windows x64, Linux x64 e macOS ARM64, com inferência real em runners nativos; veja a matriz abaixo e `docs/CONTINUIDADE.md`.
-As tags `v1.0.0` e `v2.0.0` e todos os arquivos da versão 2.0 permanecem intactos.
+**[⬇️ Baixar a versão 3.0](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1)** · **[Instalação](docs/INSTALACAO.md)** · **[Arquitetura](docs/ARQUITETURA.md)** · **[Testes](docs/TESTES.md)** · **[Limitações](docs/LIMITACOES.md)**
 
-**Matriz de compatibilidade**
+</div>
 
-| Plataforma | Status | Evidência |
-|---|---|---|
-| Windows x64 | homologada via CI | runner nativo `windows-latest`, job `homologacao` com inferência real |
-| Linux x64 | homologada via CI | runner nativo `ubuntu-latest`, job `homologacao` com inferência real |
-| macOS ARM64 | homologada via CI | runner nativo `macos-latest` (ARM64), job `homologacao` com inferência real + pacote Offline Complete extraído e testado localmente |
-| Windows ARM64 · Linux ARM64 · macOS Intel | experimentais | binário no manifesto, sem teste real — não homologadas |
+> **Preview pública — 16 de novembro de 2026.** Windows x64, Linux x64 e macOS ARM64 passaram em runners nativos do GitHub Actions, incluindo inferência real. Isso não substitui ensaios em todos os computadores e configurações de GPU.
 
-> "Homologada" exige inferência real comprovada, não apenas presença do binário no manifesto. Evidência: [CI run 43971732157](https://github.com/hebwil/ia-offline/actions/runs/43971732157) — 13 jobs verdes, incluindo os três jobs de homologação.
+## O que você pode fazer
 
----
+| Recurso | Na prática |
+|:--|:--|
+| **Chat com IA local** | Converse usando modelos GGUF executados pelo `llama-server`; modo offline por padrão. |
+| **Nexus Studio** | Interface web local com histórico, streaming, tema claro/escuro e diagnóstico. |
+| **Seus documentos** | Consulte PDFs textuais, DOCX, XLSX, CSV, TXT e Markdown com busca BM25 e citações de arquivo/página. |
+| **Roteamento inteligente** | O sistema avalia a tarefa e os recursos disponíveis para recomendar modelo, contexto e perfil de agente. |
+| **10 agentes especializados** | Perfis de instruções sob demanda, sem manter dez modelos carregados. |
+| **Modelos gerenciados** | Downloads autorizados, retomada, verificação SHA-256 e seleção manual. |
+| **Privacidade** | API em `127.0.0.1`, pesquisa externa desligada por padrão, controles de acesso locais. |
 
-## O que é
+## Conheça a arquitetura
 
-Um sistema de IA que roda a partir da própria pasta, em SSD externo ou pendrive. O computador hospedeiro empresta CPU/RAM/GPU; o projeto guarda modelos, histórico, documentos, configuração e logs. Trocar a letra do drive ou o ponto de montagem não exige reconfiguração.
+![Diagrama da arquitetura Nexus 3.0](assets/nexus-architecture.svg)
 
-- **Offline por padrão.** Nenhuma requisição externa sem escolha explícita do usuário.
-- **Motor llama.cpp oficial**, com SHA-256 verificado antes de cada instalação.
-- **Nexus Studio 3.0**: chat com streaming, temas claro/escuro, histórico, documentos e diagnóstico.
-- **Roteador inteligente**: escolhe modelo, agente, contexto, temperatura e explica o motivo.
-- **RAG local**: PDF, DOCX, TXT/MD/CSV/XLSX e imagens, com citação de arquivo e página.
-- **API OpenAI-compatible** (`/v1/models`, `/v1/chat/completions`, `/v1/embeddings`).
+Interface web → servidor local Python 3.10+ → roteador/agentes/documentos → motor llama.cpp e modelos GGUF. O código do núcleo não exige instalação de pacotes por `pip`, mas **exige Python 3.10+ já disponível ou runtime portátil configurado**.
 
----
+## Downloads: escolha o pacote certo
 
-## Início rápido
+| Edição | Para quem é | Conteúdo | Internet no primeiro uso |
+|:--|:--|:--|:--|
+| **Nexus Lite ZIP** | Principalmente Windows; fonte portátil para outras plataformas | Aplicação, interface, inicializadores e documentação (~416 KiB) | **Sim**, para obter motor e modelo |
+| **Nexus Lite TAR.GZ** | macOS e Linux | Mesmo núcleo leve (~453 KiB) | **Sim**, para obter motor e modelo |
+| **Offline Complete — macOS ARM64** | Apple Silicon | Aplicação + `llama-server` b12444 + Qwen3 0.6B Q8_0 (~618 MiB) | **Não** para o primeiro chat, desde que Python compatível esteja disponível |
 
-Requisito único: **Python 3.10+**. Não é necessário `pip` para o núcleo.
+**Arquivos oficiais:** [Release e anexos](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1) · [Checksums SHA-256](https://github.com/hebwil/ia-offline/releases/download/v3.0.0-preview.1/SHA256SUMS.txt).
 
-```bash
-# 1. Instalar motor verificado para a sua plataforma (autorização explícita)
-python3 nexus3.py setup --yes
+**Importante:** o Lite **não** contém motor e modelo. O Offline Complete é distribuído nesta preview **somente para macOS ARM64**. Nenhum deles é um instalador tradicional independente de Python. Leia os requisitos antes de baixar.
 
-# 2. Instalar um modelo compacto (autorização explícita; hash verificado)
-python3 nexus3.py models install qwen3-0.6b-q8 --yes
+## Comece em 3 passos
 
-# 3. Diagnóstico
-python3 nexus3.py doctor
+1. **Baixe e extraia** a edição correspondente na pasta ou unidade desejada. [Veja o passo a passo por sistema](docs/INSTALACAO.md).
+2. **Lite apenas:** entre na pasta extraída e prepare o motor e um modelo:
 
-# 4. Iniciar
-python3 nexus3.py start
-```
+   **Windows (PowerShell ou Terminal):**
+   ```powershell
+   py -3 nexus3.py setup --yes
+   py -3 nexus3.py models install qwen3-0.6b-q8 --yes
+   py -3 nexus3.py start
+   ```
 
-A interface abre em `http://127.0.0.1:<porta>/`. Atalhos por plataforma em `scripts/`.
+   **macOS / Linux:**
+   ```bash
+   python3 nexus3.py setup --yes
+   python3 nexus3.py models install qwen3-0.6b-q8 --yes
+   python3 nexus3.py start
+   ```
 
-No Windows: `scripts\start-windows.bat`. No macOS: `scripts/start-macos.command`. No Linux: `scripts/start-linux.sh`.
+3. **Offline Complete no Mac Apple Silicon:** extraia preservando symlinks e execute `python3 nexus3.py start` na pasta do aplicativo. A interface abre em `http://127.0.0.1:<porta>/` (a porta aparece no terminal). Não é necessário baixar um modelo no primeiro uso dessa edição.
 
-> O primeiro uso baixa componentes. Modelos grandes **nunca** são baixados sem confirmação. O tamanho e o SHA-256 aparecem antes da confirmação.
+Atalhos opcionais: `scripts/start-windows.bat`, `scripts/start-macos.command` e `scripts/start-linux.sh`. Eles **não substituem** a preparação do Lite.
 
----
+> **Segurança:** `--yes` autoriza downloads externos dos componentes especificados. Use somente os pacotes da Release e confira o SHA-256. O sistema operacional pode criar caches ou registros no computador; não prometemos “zero rastros”.
 
-## Comandos
+## Homologação e transparência
 
-| Comando | Função |
-|---|---|
-| `nexus3.py start [--port N] [--no-browser]` | inicia motor + interface |
-| `nexus3.py doctor` | relatório de hardware, motor, modelos, OCR e modo online |
-| `nexus3.py setup --yes` | instala o llama-server oficial verificado |
-| `nexus3.py models list` | lista modelos com estado de instalação e hash |
-| `nexus3.py models recommend` | recomenda modelo para o hardware atual |
-| `nexus3.py models install <id> --yes` | baixa e verifica um modelo |
-| `nexus3.py models select <id>` | troca o modelo ativo com segurança |
-| `nexus3.py doctor --informational` | relatório sem usar o exit code como gate (usado no CI) |
-| `nexus3.py selftest` | executa os 64 testes automatizados |
-| `nexus3.py build --profile {lite\|offline\|all}` | gera pacotes Nexus Lite / Offline Complete em `dist/` |
-| `nexus3.py update <pacote>` | atualiza o código preservando dados, modelos e configuração |
-| `python scripts/homologate.py` | prova de inferência real (10 checks) usada na homologação |
+| Plataforma | Situação comprovada | Pacote offline completo |
+|:--|:--|:--|
+| Windows x64 | ✅ CI nativo + inferência local real | Ainda não publicado |
+| Linux x64 | ✅ CI nativo + inferência local real | Ainda não publicado |
+| macOS ARM64 (Apple Silicon) | ✅ CI nativo + inferência local real + extração limpa local do Offline Complete | ✅ Publicado |
+| Windows ARM64, Linux ARM64, macOS Intel | ⚠️ Não homologadas nesta preview | Não publicado |
 
-## Pacotes
+**Evidências:** [CI final — 13/13 jobs](https://github.com/hebwil/ia-offline/actions/runs/43973139797) · [Homologação com inferência real](https://github.com/hebwil/ia-offline/actions/runs/43971732157) · [Detalhes dos testes](docs/TESTES.md). A suíte automatizada teve **64/64 testes aprovados** em Python 3.10, 3.12 e 3.13 nas três plataformas principais.
 
-| Pacote | Conteúdo | Uso |
-|---|---|---|
-| **Nexus Lite** (`.zip` / `.tar.gz`, ~400 KB) | código, UI, scripts, docs | obtém motor e modelo no primeiro uso, mediante autorização |
-| **Nexus Offline Complete** (`.tar.gz`, ~618 MB) | código + llama-server b12444 + Qwen3 0.6B Q8_0, todos verificados | funciona sem internet após a preparação |
-
-O pacote Offline Complete desta preview destina-se apenas a **macOS ARM64** (plataforma com motor e modelo verificados e inferência real comprovada localmente). Conferência de integridade em `dist/SHA256SUMS.txt`.
-
----
-
-## Perfis de hardware
-
-| Perfil | RAM | Modelo padrão recomendado | Contexto |
-|---|---|---|---|
-| Modesto | 4–8 GB | Qwen3 0.6B Q8_0 / Qwen3 4B Q4_K_M | 1024–4096 |
-| Intermediário | 8–16 GB | Qwen3 4B ou 8B Q4_K_M | 4096–8192 |
-| Avançado | 16 GB+ ou VRAM 12 GB+ | Qwen3 8B, coder ou visão | 8192+ |
-
-O context é limitado por RAM disponível e pelo teto do modelo. Se não houver GPU, `gpu_layers=0` e o sistema funciona em CPU.
-
----
-
-## Segurança e privacidade
-
-- Servidor escuta **apenas em 127.0.0.1**, com chave de API gerada por instalação.
-- Nenhum endpoint executa comandos do host. Ferramentas de shell **não** são expostas ao modelo.
-- Downloads usam `.part`, retomada por `Range`, verificação SHA-256 e promoção atômica.
-- Extração de arquivos rejeita travessia de diretório, links absolutos e hard links; preserva apenas symlinks relativos necessários ao llama.cpp.
-- Logs redatam chaves, tokens e diretórios de usuário.
-- O ID de instalação é um UUID local — sem nome de máquina ou usuário.
-- Somente PIDs criados pela aplicação são encerrados, e somente após conferência do binário.
-
-**Rastros:** o sistema operacional pode criar caches, registros e arquivos temporários fora da pasta. A v3.0 minimiza e documenta esse efeito, mas não promete ausência absoluta.
-
----
+**Limitações relevantes:** GPU CUDA/ROCm/Vulkan sem homologação específica; OCR requer Tesseract; busca semântica por embeddings não está ativa por padrão; tool calling do modelo, shell Tauri e auto-update não integram esta preview. O modelo Qwen3 0.6B incluído no Offline Complete serve como base leve; qualidade para tarefas exigentes varia com o modelo escolhido.
 
 ## Documentação
 
-- `docs/ARQUITETURA.md` — decisões, fluxos e módulos.
-- `docs/INSTALACAO.md` — primeiro uso por plataforma e sistemas de arquivos.
-- `docs/TESTES.md` — evidências reais de execução.
-- `docs/LIMITACOES.md` — pendências e itens não homologados.
-- `docs/CONTINUIDADE.md` — registro de decisões, commits, testes e retomada.
-- `docs/THIRD-PARTY.md` — licenças e atribuições.
-- `../_audit/00-ESTADO-ORIGINAL.md` — auditoria da v2.0.2.
-- `../_audit/01-ARQUITETURA-V3.md` — pesquisa e justificativas.
+| Documento | Conteúdo |
+|:--|:--|
+| [Instalação e solução de problemas](docs/INSTALACAO.md) | Requisitos, comandos por sistema, Lite vs Offline e pendrive/SSD |
+| [Arquitetura](docs/ARQUITETURA.md) | Fluxos, módulos, segurança e API |
+| [Testes e evidências](docs/TESTES.md) | O que foi comprovado e o que não foi |
+| [Limitações](docs/LIMITACOES.md) | Restrições atuais, compatibilidade e roadmap |
+| [Licenças e terceiros](docs/THIRD-PARTY.md) | Origem de componentes incorporados e seus termos |
+| [Changelog](CHANGELOG.md) | Histórico técnico da versão 3.0 |
+
+## Histórico do projeto
+
+A **v1.0/v2.0** permanece arquivada no GitHub. A **v3.0** adota uma arquitetura diferente, com Python, llama.cpp e Nexus Studio própria. O código mais recente está na branch [`develop/v3.0`](https://github.com/hebwil/ia-offline/tree/develop/v3.0); a [release Preview 1](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1) corresponde ao commit `2501b81a9e3db3dea9c0dfa15d25abc1684ec895`.
 
 ---
 
-## Licença
+<div align="center">
 
-© 2026 WillTechBH. Componentes de terceiros mantêm suas licenças originais — veja `docs/THIRD-PARTY.md` e `MANIFEST.json`.
+**WillTechBH · IA local, com controle sobre seus dados.**
+
+[Baixar](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1) · [Ver código](https://github.com/hebwil/ia-offline/tree/develop/v3.0) · [Ver CI](https://github.com/hebwil/ia-offline/actions)
+
+</div>
