@@ -1,71 +1,52 @@
-# Testes e evidências
+# Testes e evidências — Nexus Portable 3.0 Preview 1
 
-Ambiente de execução: **macOS 27.2.0, Apple M5 Pro, ARM64, 24 GB RAM, Python 3.13.12**.
-Data: 2026-11-16. Nenhum Windows, Linux ou GPU discreta estava disponível.
+> **Estado em 16/11/2026.** Este documento consolida a homologação final. Os primeiros testes foram realizados no macOS ARM64; os testes multiplataforma posteriores ocorreram em runners nativos do GitHub Actions. A versão pública é [v3.0.0-preview.1](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1), commit `2501b81a9e3db3dea9c0dfa15d25abc1684ec895`.
 
-## 1. Suíte automatizada
+## Resultado consolidado
 
-```bash
-cd v3.0 && python3 nexus3.py selftest
-```
+| Plataforma | Runner | Suíte automatizada | Inferência local real | Observação |
+|---|---|---|---|---|
+| Windows x64 | `windows-latest` | 64/64 em Python 3.10, 3.12 e 3.13 | ✅ Job `homologacao` aprovado | CI nativo; não equivale a todos os hardwares Windows |
+| Linux x64 | `ubuntu-latest` | 64/64 em Python 3.10, 3.12 e 3.13 | ✅ Job `homologacao` aprovado | CI nativo; GPU não homologada |
+| macOS ARM64 | `macos-latest` | 64/64 em Python 3.10, 3.12 e 3.13 | ✅ Job `homologacao` aprovado | Também houve execução local e teste do pacote Offline Complete |
 
-Resultado: **Ran 37 tests — OK**.
+**CI final:** [Run 43973139797 — 13/13 jobs concluídos com sucesso](https://github.com/hebwil/ia-offline/actions/runs/43973139797).  
+**Homologação com inferência real:** [Run 43971732157 — 13/13 jobs concluídos com sucesso](https://github.com/hebwil/ia-offline/actions/runs/43971732157).
 
-Cobertura:
+O pipeline contém 9 jobs de teste (três versões de Python por sistema), 3 de homologação e 1 de integridade.
 
-| Área | Casos |
-|---|---|
-| Plataforma | detecção de SO/arquitetura, descoberta de raiz, travessia de path, redaction, backup atômico, posse de PID |
-| Configuração | defaults, roundtrip, visão pública sem chave de API |
-| Hardware | tiers, orçamento, contexto e gpu_layers |
-| Modelos | hashes do registro, detecção de arquivo ausente/adulterado, seleção por capacidade/RAM |
-| Download | retomada `Range` + hash válido (servidor HTTP local), rejeição e remoção em hash inválido |
-| Documentos | TXT, CSV, DOCX, XLSX, PDF real gerado com pypdf, imagem sem OCR (não inventa texto), chunks com página |
-| RAG | tokenização, BM25, citações, persistência e remoção do índice |
-| Roteador | detecção de domínios, agente correto, decisão explicável, limites de temperatura |
-| Ferramentas | calculadora segura (rejeita `__import__`), allowlist |
-| Motor | manifesto com 6 hashes de 64 chars, comando com loopback e API key, sem `--tools` |
-| API HTTP | `/health`, `/api/status`, `/v1/models`, UI estática, upload/index/search, histórico, doctor, offline default, erro 503 sem motor, 403 sem autorização de download |
+## Como reproduzir a suíte
 
-## 2. Integração real (motor + modelo + RAG)
+Na raiz da versão 3.0, com Python 3.10+:
 
 ```bash
-python3 nexus3.py setup --yes                       # motor b12444-macos-arm64
-python3 nexus3.py models install qwen3-0.6b-q8 --yes
-python3 -u scripts/e2e-smoke.py
+python3 nexus3.py selftest
 ```
 
-Evidências (resumo do log integral em `v3.0/_audit-e2e.log`):
+No Windows, use `py -3 nexus3.py selftest` se `python3` não estiver disponível.
 
-- Motor: `bin/engines/macos-arm64/llama-b12444/llama-server`, arquivo com SHA-256 **verificado**, 18 symlinks de dylib preservados.
-- Inicialização: `qwen3-0.6b-q8`, porta 9931, contexto 8192, `/health` 200, `startup_errors: []`.
-- Chat não-stream: resposta real em português, `source=local`, roteador `geral`, 1,9 s.
-- Chat stream SSE: 2 chunks recebidos, resposta final `pronto`, 1,4 s.
-- Documento: upload de TXT → 1 chunk → pergunta fundamentada → resposta `"O prazo ... é de 45 dias, citado na Clausula Unica do contrato-teste.txt"`, `source=local+documentos`, citação `contrato-teste.txt (p. 1)`.
-- Diagnóstico: 6 checks OK; OCR local e modo online corretamente reportados como indisponíveis/desativados.
-- Encerramento: PID 44203 encerrado pelo app; nenhum processo gerenciado restante.
+Para os testes de inferência, consulte `scripts/homologate.py`, `scripts/e2e-smoke.py` e `.github/workflows/ci.yml`. Os testes funcionais exigem motor e modelo compatíveis instalados; `doctor --informational` é somente diagnóstico e **não comprova inferência**.
 
-Bug real encontrado e corrigido durante esta validação: o extrator original ignorava symlinks, causando `dyld: Library not loaded: @rpath/libllama-common.1.dylib`. O extrator agora preserva symlinks relativos seguros.
+A matriz cobre detecção de plataforma, caminhos portáteis, configuração, segurança, downloads verificados, modelos, roteador, agentes, documentos, RAG, API, inicializadores e empacotamento.
 
-## 3. Pacotes
+## Evidência adicional — Offline Complete macOS ARM64
 
-```bash
-python3 nexus3.py build
-```
+O pacote `Nexus-Offline-Complete-3.0-macos-arm64-20261116.tar.gz` foi extraído em uma pasta limpa. Foram verificados o binário, o modelo Qwen3 0.6B Q8_0, **18 symlinks de bibliotecas dinâmicas** e a execução de inferência **sem novos downloads**. O teste relatado cumpriu 10/10 verificações funcionais.
 
-- `dist/WillTechBH-IA-Nexus-3.0-win-portable-20261116.zip` — 373 KB.
-- `dist/WillTechBH-IA-Nexus-3.0-unix-portable-20261116.tar.gz` — 335 KB.
+O pacote contém motor e modelo, mas exige Python 3.10+ no host ou runtime portátil compatível. Portanto, **offline completo não significa totalmente independente de Python**.
 
-Conferido: nenhum `config/nexus3.json` (runtime) ou arquivo `.pyc` embarcado. Pacotes não incluem modelos/engines — estes são obtidos com autorização e verificação no primeiro uso.
+## Integridade dos anexos publicados
 
-## 4. O que não foi testado aqui
+Os arquivos estão na [Release](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1), acompanhados de [SHA256SUMS.txt](https://github.com/hebwil/ia-offline/releases/download/v3.0.0-preview.1/SHA256SUMS.txt). Os hashes foram divulgados no lançamento e devem ser conferidos após o download.
 
-- Windows 10/11 (nenhum host disponível): launchers `.bat` escritos e revisados, mas **não executados**.
-- Linux x86_64/ARM64: binários no manifesto, mas não executados.
-- CUDA / ROCm / Vulkan: sem GPU no ambiente; fallback CPU/Metal homologado no macOS ARM64.
-- Modo online: implementado e desativado por padrão; não exercitado contra a Wikipedia nesta missão.
-- OCR local: `tesseract` ausente; o sistema reporta a limitação em vez de simular.
-- Modelos de 4B/8B/coder/visão/embeddings: registro e hashes verificados via API, downloads **não** executados (tamanhos maiores).
-- Troca de letra de drive e ponto de montagem: lógica implementada e testada por unidade, não em sistema real.
+## Limites da homologação
 
-Esses itens permanecem como pendências explícitas — ver `LIMITACOES.md`.
+- Windows ARM64, Linux ARM64 e macOS Intel: sem prova final de execução real.
+- CUDA, ROCm e Vulkan: não homologados em GPUs específicas.
+- OCR local: exige instalação separada do Tesseract.
+- Embeddings: caminho opcional, não habilitado por padrão.
+- Avaliação de qualidade em português, programação e documentos complexos: não há benchmark comparativo sistemático.
+- Portabilidade entre múltiplas unidades/dispositivos físicos e em todos os sistemas de arquivos: não exaustivamente homologada.
+- Testes CI nativos não substituem ensaios em hardware real de usuários.
+
+Para requisitos e restrições, consulte [LIMITACOES.md](LIMITACOES.md). Para instalar, veja [INSTALACAO.md](INSTALACAO.md).
