@@ -1,13 +1,16 @@
 {
   "product": "WillTechBH IA Nexus Portable",
-  "version": "3.0.0-develop",
-  "status": "develop/v3.0 — não publicado",
+  "version": "3.0.0-preview.1",
+  "status": "Pre-release pública — homologação CI Windows x64, Linux x64 e macOS ARM64",
   "generated": "2026-11-16",
   "repository_policy": {
     "original_repository": "https://github.com/hebwil/ia-offline",
-    "original_tags_untouched": ["v1.0.0", "v2.0.0"],
-    "work_branch": "develop/v3.0 (isolado, sem remote, sem push)",
-    "authorization": "Nenhum release externo foi publicado."
+    "original_tags_untouched": [
+      "v1.0.0",
+      "v2.0.0"
+    ],
+    "work_branch": "develop/v3.0 — publicada no GitHub; main com legado preservado",
+    "authorization": "Publicação autorizada; tag v3.0.0-preview.1 e anexos já publicados; releases anteriores preservadas"
   },
   "components": [
     {
@@ -20,20 +23,35 @@
       "name": "Nexus Studio 3.0 (HTML/CSS/JS)",
       "origin": "Reescrito na v3.0, inspirado na UX da v2.0",
       "license": "© 2026 WillTechBH",
-      "reused_from": ["v2.0 conceito: sidebar de histórico, seletor de modo/agente, streaming SSE"]
+      "reused_from": [
+        "v2.0 conceito: sidebar de histórico, seletor de modo/agente, streaming SSE"
+      ]
     },
     {
       "name": "pypdf 5.9.0 (vendor)",
       "origin": "Reaproveitado integralmente de proxy/vendor/pypdf da Release v2.0.2",
       "license": "MIT — ver docs/THIRD-PARTY.md",
-      "reused_from": ["Release v2.0.2: proxy/vendor/pypdf"]
+      "reused_from": [
+        "Release v2.0.2: proxy/vendor/pypdf"
+      ]
     },
     {
       "name": "Perfis de agentes",
       "origin": "Prompts migrados e revisados de prompts/specialists.json (v2.0)",
       "license": "© 2026 WillTechBH",
-      "reused_from": ["geral", "advogado", "programador", "tecnico", "pesquisador", "escritor", "imagem"],
-      "substitutions": ["perfil 'privado' preservado", "novo perfil 'analista de dados'"]
+      "reused_from": [
+        "geral",
+        "advogado",
+        "programador",
+        "tecnico",
+        "pesquisador",
+        "escritor",
+        "imagem"
+      ],
+      "substitutions": [
+        "perfil 'privado' preservado",
+        "novo perfil 'analista de dados'"
+      ]
     },
     {
       "name": "llama.cpp llama-server b12444",
@@ -54,8 +72,11 @@
       "origin": "Hugging Face — repositórios oficiais/comunitários verificados via API lfs.sha256 em 2026-11-16",
       "license": "Apache-2.0 (Qwen3, Qwen2.5-Coder, MiniCPM-V), Gemma (EmbeddingGemma)",
       "models": [
-        "Qwen/Qwen3-0.6B-GGUF", "Qwen/Qwen3-4B-GGUF", "Qwen/Qwen3-8B-GGUF",
-        "bartowski/Qwen2.5-Coder-7B-Instruct-GGUF", "ggml-org/MiniCPM-V-4.6-GGUF",
+        "Qwen/Qwen3-0.6B-GGUF",
+        "Qwen/Qwen3-4B-GGUF",
+        "Qwen/Qwen3-8B-GGUF",
+        "bartowski/Qwen2.5-Coder-7B-Instruct-GGUF",
+        "ggml-org/MiniCPM-V-4.6-GGUF",
         "ggml-org/embeddinggemma-300m-gguf"
       ]
     },
@@ -67,18 +88,62 @@
     }
   ],
   "replaced_from_v2": [
-    {"component": "22 scripts PowerShell + 6 .bat", "replacement": "nexus3.py + módulos Python multiplataforma", "reason": "Portabilidade Windows/macOS/Linux e testabilidade"},
-    {"component": "download-manager.ps1 sem hash", "replacement": "DownloadManager com SHA-256, retomada e promoção atômica", "reason": "Falha real de integridade na v2.0"},
-    {"component": "model-selector.ps1", "replacement": "NexusRouter com capacidades, orçamento e justificativa", "reason": "Seleção explicável e degradação elegante"},
-    {"component": "host-detector.ps1 (PII em claro)", "replacement": "install-id anônimo", "reason": "Privacidade"},
-    {"component": "kill-nexus-processes.ps1 (PID reuse)", "replacement": "ProcessRegistry com verificação de binário", "reason": "Segurança"},
-    {"component": "config/nexus.json (570 linhas hotfix)", "replacement": "DEFAULTS versionado + config/nexus3.json gerado", "reason": "Manutenibilidade"},
-    {"component": "UI dark-only sem métricas", "replacement": "Nexus Studio responsivo com tema claro/escuro e painéis reais", "reason": "UX e honestidade de estado"}
+    {
+      "component": "22 scripts PowerShell + 6 .bat",
+      "replacement": "nexus3.py + módulos Python multiplataforma",
+      "reason": "Portabilidade Windows/macOS/Linux e testabilidade"
+    },
+    {
+      "component": "download-manager.ps1 sem hash",
+      "replacement": "DownloadManager com SHA-256, retomada e promoção atômica",
+      "reason": "Falha real de integridade na v2.0"
+    },
+    {
+      "component": "model-selector.ps1",
+      "replacement": "NexusRouter com capacidades, orçamento e justificativa",
+      "reason": "Seleção explicável e degradação elegante"
+    },
+    {
+      "component": "host-detector.ps1 (PII em claro)",
+      "replacement": "install-id anônimo",
+      "reason": "Privacidade"
+    },
+    {
+      "component": "kill-nexus-processes.ps1 (PID reuse)",
+      "replacement": "ProcessRegistry com verificação de binário",
+      "reason": "Segurança"
+    },
+    {
+      "component": "config/nexus.json (570 linhas hotfix)",
+      "replacement": "DEFAULTS versionado + config/nexus3.json gerado",
+      "reason": "Manutenibilidade"
+    },
+    {
+      "component": "UI dark-only sem métricas",
+      "replacement": "Nexus Studio responsivo com tema claro/escuro e painéis reais",
+      "reason": "UX e honestidade de estado"
+    }
   ],
   "not_distributed": [
-    "bin/engines/** (baixado com autorização)",
-    "models/**/*.gguf (baixado com autorização)",
+    "bin/engines/** (não versionado no Git; incluído apenas no pacote Offline Complete macOS ARM64, ou baixado pelo Lite)",
+    "models/**/*.gguf (não versionado no Git; Qwen3 0.6B incluído apenas no pacote Offline Complete macOS ARM64, ou baixado pelo Lite)",
     "data/**, state/**, logs/** (estado local)",
     "config/nexus3.json (config de runtime, pode conter segredos)"
-  ]
+  ],
+  "release": {
+    "tag": "v3.0.0-preview.1",
+    "url": "https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1",
+    "tagged_commit": "2501b81a9e3db3dea9c0dfa15d25abc1684ec895",
+    "classification": "pre-release",
+    "ci": "https://github.com/hebwil/ia-offline/actions/runs/43973139797",
+    "validated_platforms": [
+      "windows-x64",
+      "linux-x64",
+      "macos-arm64"
+    ],
+    "offline_complete_published_for": [
+      "macos-arm64"
+    ],
+    "requires_python": "3.10+"
+  }
 }
