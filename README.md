@@ -1,214 +1,116 @@
-# 🧠 WillTechBH IA Offline
+<div align="center">
 
-### IA local completa no Pen Drive — Zero instalação. Zero custo. Zero nuvem.
+![Nexus Portable 3.0](https://raw.githubusercontent.com/hebwil/ia-offline/develop/v3.0/assets/nexus-hero.svg)
 
-[![Licença](https://img.shields.io/badge/Licença-Proprietária-red.svg)](LICENSE)
-[![Plataforma](https://img.shields.io/badge/Plataforma-Windows-blue.svg)]()
-[![Ollama](https://img.shields.io/badge/Motor-Ollama-black.svg)](https://ollama.com)
-[![AnythingLLM](https://img.shields.io/badge/Interface-AnythingLLM-purple.svg)](https://anythingllm.com)
+# WillTechBH IA Nexus Portable 3.0
+
+**Uma IA local para seus documentos, conversas e tarefas — executada no seu computador.**
+
+[![Preview](https://img.shields.io/badge/vers%C3%A3o-v3.0.0--preview.1-805ad5?style=for-the-badge)](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1)
+[![CI](https://img.shields.io/github/actions/workflow/status/hebwil/ia-offline/ci.yml?branch=develop%2Fv3.0&style=for-the-badge&label=CI)](https://github.com/hebwil/ia-offline/actions/runs/43973139797)
+![Windows](https://img.shields.io/badge/Windows-x64-1677ee?style=flat-square)
+![Linux](https://img.shields.io/badge/Linux-x64-333333?style=flat-square)
+![macOS](https://img.shields.io/badge/macOS-ARM64-333333?style=flat-square)
+
+**[⬇️ Baixar a versão 3.0](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1)** · **[Instalação](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/INSTALACAO.md)** · **[Arquitetura](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/ARQUITETURA.md)** · **[Testes](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/TESTES.md)** · **[Limitações](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/LIMITACOES.md)**
 
 </div>
 
----
+> **Preview pública — 16 de novembro de 2026.** Windows x64, Linux x64 e macOS ARM64 passaram em runners nativos do GitHub Actions, incluindo inferência real. Isso não substitui ensaios em todos os computadores e configurações de GPU.
 
-## 🚀 O que é isso?
+## O que você pode fazer
 
-**WillTechBH IA Offline** é um sistema de Inteligência Artificial completo que roda 100%
-no seu Pen Drive ou SSD externo — sem instalar absolutamente nada no computador que for usar.
+| Recurso | Na prática |
+|:--|:--|
+| **Chat com IA local** | Converse usando modelos GGUF executados pelo `llama-server`; modo offline por padrão. |
+| **Nexus Studio** | Interface web local com histórico, streaming, tema claro/escuro e diagnóstico. |
+| **Seus documentos** | Consulte PDFs textuais, DOCX, XLSX, CSV, TXT e Markdown com busca BM25 e citações de arquivo/página. |
+| **Roteamento inteligente** | O sistema avalia a tarefa e os recursos disponíveis para recomendar modelo, contexto e perfil de agente. |
+| **10 agentes especializados** | Perfis de instruções sob demanda, sem manter dez modelos carregados. |
+| **Modelos gerenciados** | Downloads autorizados, retomada, verificação SHA-256 e seleção manual. |
+| **Privacidade** | API em `127.0.0.1`, pesquisa externa desligada por padrão, controles de acesso locais. |
 
-Você pluga, executa um arquivo `.bat` e em minutos tem uma IA de nível profissional
-funcionando, seja em casa, no trabalho, no escritório do cliente ou em qualquer PC Windows.
+## Conheça a arquitetura
 
----
+![Diagrama da arquitetura Nexus 3.0](https://raw.githubusercontent.com/hebwil/ia-offline/develop/v3.0/assets/nexus-architecture.svg)
 
-## ⚡ Funcionalidades
+Interface web → servidor local Python 3.10+ → roteador/agentes/documentos → motor llama.cpp e modelos GGUF. O código do núcleo não exige instalação de pacotes por `pip`, mas **exige Python 3.10+ já disponível ou runtime portátil configurado**.
 
-- ✅ **Zero instalação** no PC hospedeiro — nenhum arquivo é gravado no Windows
-- ✅ **Zero rastro** — ao ejetar o drive, o PC fica exatamente como estava
-- ✅ **Zero custo** — nenhuma assinatura, nenhuma API key, nenhuma conta obrigatória
-- ✅ **Zero nuvem** — processamento 100% local, seus dados nunca saem do drive
-- ✅ **Auto-detecção de hardware** — detecta RAM, GPU (NVIDIA/AMD/Intel) e escolhe o modelo ideal
-- ✅ **5 tiers automáticos** — do Nano (4GB RAM) ao Ultra (32GB+ RAM)
-- ✅ **Aceleração automática** — CUDA (NVIDIA), ROCm (AMD RX7000), Vulkan (outras GPUs)
-- ✅ **Visão computacional** — analisa imagens (tiers 16GB+)
-- ✅ **Web Bonus automático** — se tiver internet, a IA busca dados em tempo real sem você fazer nada
-- ✅ **Especialista em direito brasileiro** — CLT, Código Civil, PJe, STJ, STF, TJMG
-- ✅ **Especialista em programação** — Java, Python, Shell, REST, Spring Boot, Git, Docker
+## Downloads: escolha o pacote certo
 
----
+| Edição | Para quem é | Conteúdo | Internet no primeiro uso |
+|:--|:--|:--|:--|
+| **Nexus Lite ZIP** | Principalmente Windows; fonte portátil para outras plataformas | Aplicação, interface, inicializadores e documentação (~416 KiB) | **Sim**, para obter motor e modelo |
+| **Nexus Lite TAR.GZ** | macOS e Linux | Mesmo núcleo leve (~453 KiB) | **Sim**, para obter motor e modelo |
+| **Offline Complete — macOS ARM64** | Apple Silicon | Aplicação + `llama-server` b12444 + Qwen3 0.6B Q8_0 (~618 MiB) | **Não** para o primeiro chat, desde que Python compatível esteja disponível |
 
-## 🧬 Tiers de Modelos
+**Arquivos oficiais:** [Release e anexos](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1) · [Checksums SHA-256](https://github.com/hebwil/ia-offline/releases/download/v3.0.0-preview.1/SHA256SUMS.txt).
 
-| Tier | RAM Necessária | Modelo | Contexto | Visão |
-|------|---------------|--------|----------|-------|
-| 🔵 NANO | 4–6 GB | Gemma 3 1B | 131.072 tokens | ❌ |
-| 🟢 FAST | 7–10 GB | Dolphin 3.0 Llama 3.1 8B | 8.192 tokens | ❌ |
-| 🟡 SMART | 11–16 GB | Mistral Nemo 12B | 16.384 tokens | ✅ |
-| 🟠 PREMIUM | 17–28 GB | Mistral Small 24B | 32.768 tokens | ✅ |
-| 🔴 ULTRA | 32 GB+ | DeepSeek R1 Abliterated 32B | 65.536 tokens | ✅ |
+**Importante:** o Lite **não** contém motor e modelo. O Offline Complete é distribuído nesta preview **somente para macOS ARM64**. Nenhum deles é um instalador tradicional independente de Python. Leia os requisitos antes de baixar.
 
----
+## Comece em 3 passos
 
-## 🌐 Modo Web Bonus
+1. **Baixe e extraia** a edição correspondente na pasta ou unidade desejada. [Veja o passo a passo por sistema](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/INSTALACAO.md).
+2. **Lite apenas:** entre na pasta extraída e prepare o motor e um modelo:
 
-Quando o sistema detecta conexão com a internet, **automaticamente e sem perguntar**:
+   **Windows (PowerShell ou Terminal):**
+   ```powershell
+   py -3 nexus3.py setup --yes
+   py -3 nexus3.py models install qwen3-0.6b-q8 --yes
+   py -3 nexus3.py start
+   ```
 
-1. Ativa o agente de busca DuckDuckGo no AnythingLLM
-2. O modelo decide sozinho quando precisa buscar dados atuais
-3. Busca, lê as páginas, injeta como contexto e responde
-4. **Todo o processamento continua 100% local no seu drive**
+   **macOS / Linux:**
+   ```bash
+   python3 nexus3.py setup --yes
+   python3 nexus3.py models install qwen3-0.6b-q8 --yes
+   python3 nexus3.py start
+   ```
 
-Sem internet → funciona normalmente como IA local completa.
-Com internet → equivalente ao Perplexity, mas rodando no seu hardware.
+3. **Offline Complete no Mac Apple Silicon:** extraia preservando symlinks e execute `python3 nexus3.py start` na pasta do aplicativo. A interface abre em `http://127.0.0.1:<porta>/` (a porta aparece no terminal). Não é necessário baixar um modelo no primeiro uso dessa edição.
 
----
+Atalhos opcionais: `scripts/start-windows.bat`, `scripts/start-macos.command` e `scripts/start-linux.sh`. Eles **não substituem** a preparação do Lite.
 
-## 📦 Como instalar
+> **Segurança:** `--yes` autoriza downloads externos dos componentes especificados. Use somente os pacotes da Release e confira o SHA-256. O sistema operacional pode criar caches ou registros no computador; não prometemos “zero rastros”.
 
-### Requisitos
-- Windows 10 ou 11 (64-bit)
-- Pen Drive ou SSD com **mínimo 4GB livres** (recomendado 32GB+ para tier ULTRA)
-- Conexão com internet apenas durante a instalação
+## Homologação e transparência
 
-### Passo a passo
+| Plataforma | Situação comprovada | Pacote offline completo |
+|:--|:--|:--|
+| Windows x64 | ✅ CI nativo + inferência local real | Ainda não publicado |
+| Linux x64 | ✅ CI nativo + inferência local real | Ainda não publicado |
+| macOS ARM64 (Apple Silicon) | ✅ CI nativo + inferência local real + extração limpa local do Offline Complete | ✅ Publicado |
+| Windows ARM64, Linux ARM64, macOS Intel | ⚠️ Não homologadas nesta preview | Não publicado |
 
-**1.** Baixe o arquivo ZIP na aba [Releases](../../releases)
+**Evidências:** [CI final — 13/13 jobs](https://github.com/hebwil/ia-offline/actions/runs/43973139797) · [Homologação com inferência real](https://github.com/hebwil/ia-offline/actions/runs/43971732157) · [Detalhes dos testes](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/TESTES.md). A suíte automatizada teve **64/64 testes aprovados** em Python 3.10, 3.12 e 3.13 nas três plataformas principais.
 
-**2.** Extraia **na raiz** do Pen Drive ou SSD externo:
-E:
-├── install.bat
-├── install-core.ps1
-├── start-windows.bat
-├── web_context.ps1
-├── README.md
-├── TUTORIAL.md
-└── LICENSE
+**Limitações relevantes:** GPU CUDA/ROCm/Vulkan sem homologação específica; OCR requer Tesseract; busca semântica por embeddings não está ativa por padrão; tool calling do modelo, shell Tauri e auto-update não integram esta preview. O modelo Qwen3 0.6B incluído no Offline Complete serve como base leve; qualidade para tarefas exigentes varia com o modelo escolhido.
 
-text
+## Documentação
 
-**3.** Execute o instalador:
-Clique duplo em: install.bat
+| Documento | Conteúdo |
+|:--|:--|
+| [Instalação e solução de problemas](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/INSTALACAO.md) | Requisitos, comandos por sistema, Lite vs Offline e pendrive/SSD |
+| [Arquitetura](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/ARQUITETURA.md) | Fluxos, módulos, segurança e API |
+| [Testes e evidências](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/TESTES.md) | O que foi comprovado e o que não foi |
+| [Limitações](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/LIMITACOES.md) | Restrições atuais, compatibilidade e roadmap |
+| [Licenças e terceiros](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/THIRD-PARTY.md) | Origem de componentes incorporados e seus termos |
+| [Changelog](https://github.com/hebwil/ia-offline/blob/develop/v3.0/CHANGELOG.md) | Histórico técnico da versão 3.0 |
 
-text
+## Onde está o código da versão 3.0?
 
-**4.** Aguarde os downloads (pode demorar 30 min a 2h dependendo do tier e internet)
+> **Atenção:** a branch padrão `main` conserva os scripts legados da v1.0. A versão atual **não** usa esses scripts. Para instalar ou ler o código do Nexus 3.0, utilize os arquivos da [branch `develop/v3.0`](https://github.com/hebwil/ia-offline/tree/develop/v3.0) ou os [pacotes da Release](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1). Esta página de apresentação foi atualizada sem apagar o legado.
 
-**5.** Quando terminar, execute:
-Clique duplo em: start-windows.bat
+## Histórico do projeto
 
-text
-
----
-
-## 🖥️ Como usar
-
-Após iniciar com `start-windows.bat`:
-
-- A janela preta mostra o status do sistema
-- O chat do AnythingLLM abre automaticamente
-- Digite sua pergunta normalmente — jurídica, técnica, código, análise de imagem
-- **Mantenha a janela preta aberta enquanto usa**
-- Para desligar: pressione qualquer tecla na janela preta → ejeta o drive com segurança
-
----
-
-## ⚖️ Casos de uso jurídico
-
-A IA foi treinada com instruções específicas para o direito brasileiro:
-
-- Redação de petições iniciais, recursos e contestações
-- Análise de jurisprudência STJ, STF, TJMG e TRT
-- Procedimentos PJe — protocolos, prazos e recursos
-- Lei 9.099/95 — Juizados Especiais Cíveis e Criminais
-- CLT — rescisão, FGTS, horas extras, assédio
-- CDC — direitos do consumidor, inversão do ônus
-- CPC — prazos processuais, nulidades, embargos
-
----
-
-## 💻 Casos de uso em programação
-
-- Revisão e geração de código Java, Python, Shell, Batch
-- Spring Boot — APIs REST, Maven, microsserviços
-- Git — commits, branches, conflitos, rebase
-- Docker e Oracle Cloud — deploy, containers
-- Debugging — análise de erros, stack traces
-- Documentação técnica e comentários de código
-- Scripts de automação e deploy CI/CD
-
----
-
-## 🔒 Privacidade e segurança
-┌─────────────────────────────────────────────────┐
-│ O que NUNCA sai do seu drive: │
-│ │
-│ ✅ Suas perguntas e conversas │
-│ ✅ Os documentos que você envia │
-│ ✅ O modelo de IA │
-│ ✅ O processamento das respostas │
-│ │
-│ O que pode sair (apenas no Web Bonus): │
-│ 🌐 Apenas a query de busca (ex: "STJ 2025") │
-│ vai para DuckDuckGo — igual a pesquisar │
-│ no navegador. Zero dados pessoais. │
-└─────────────────────────────────────────────────┘
-
-text
-
----
-
-## 📁 Estrutura do drive após instalação
-drive:
-├── install.bat ← Instalar (rodar uma vez)
-├── install-core.ps1 ← Núcleo do instalador
-├── start-windows.bat ← INICIAR (usar sempre)
-├── web_context.ps1 ← Motor de Web Bonus
-├── README.md
-├── TUTORIAL.md
-├── LICENSE
-├── models\ ← Modelos de IA (arquivos .gguf)
-├── ollama\ ← Motor Ollama portátil
-├── anythingllm_app\ ← Interface de chat portátil
-└── data\ ← Dados e configurações
-├── anythingllm
-├── ollama-profile
-└── ollama-local
-
-text
-
----
-
-## ❓ Problemas comuns
-
-**Modelo não encontrado:**
-> Execute `install.bat` primeiro. O `start-windows.bat` só funciona após a instalação.
-
-**AnythingLLM não abre:**
-> Delete a pasta `anythingllm_app\` e rode `install.bat` novamente.
-
-**Download travado:**
-> Feche tudo, delete arquivos parciais na pasta `models\` e rode `install.bat` novamente.
-
-**GPU não detectada:**
-> O sistema usa CPU automaticamente como fallback. Funciona normalmente, porém mais lento.
-
-**Windows bloqueou o .bat:**
-> Clique com botão direito → Propriedades → Desbloquear → OK
-
----
-
-## 📜 Licença
-
-© 2026 WillTechBH — Todos os direitos reservados.
-Este software é proprietário. Proibida reprodução, redistribuição ou uso comercial sem autorização.
-Consulte o arquivo [LICENSE](LICENSE) para detalhes completos.
+A **v1.0/v2.0** permanece arquivada no GitHub. A **v3.0** adota uma arquitetura diferente, com Python, llama.cpp e Nexus Studio própria. O código mais recente está na branch [`develop/v3.0`](https://github.com/hebwil/ia-offline/tree/develop/v3.0); a [release Preview 1](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1) corresponde ao commit `2501b81a9e3db3dea9c0dfa15d25abc1684ec895`.
 
 ---
 
 <div align="center">
 
-**Desenvolvido por [WillTechBH](https://github.com/hebwil)**
+**WillTechBH · IA local, com controle sobre seus dados.**
 
-*IA para quem precisa de resultado, não de assinatura.*
+[Baixar](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1) · [Ver código](https://github.com/hebwil/ia-offline/tree/develop/v3.0) · [Ver CI](https://github.com/hebwil/ia-offline/actions)
 
 </div>
