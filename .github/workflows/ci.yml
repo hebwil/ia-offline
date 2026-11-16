@@ -21,12 +21,25 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Sintaxe
         run: python -m compileall -q nexus3 nexus3.py
-      - name: Testes unitários e de integração HTTP
+      - name: Testes unitários e de portabilidade
         run: python nexus3.py selftest
-      - name: Diagnóstico
-        run: python nexus3.py doctor
+      - name: Diagnóstico (informativo — sem motor/modelo no CI)
+        run: python nexus3.py doctor --informational
       - name: Pacotes portáteis
         run: python nexus3.py build
+      - name: Verificar launchers POSIX
+        if: runner.os != 'Windows'
+        shell: bash
+        run: bash -n scripts/start-linux.sh scripts/start-macos.command scripts/doctor.sh
+      - name: Verificar launcher Windows (sintaxe + caminho relativo)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bat = Get-Content scripts/start-windows.bat -Raw
+          if ($bat -notmatch 'cd /d "%~dp0\.\."') { throw 'launcher Windows sem cd relativo' }
+          if ($bat -notmatch 'NEXUS3_ROOT') { throw 'launcher Windows sem NEXUS3_ROOT' }
+          if ($bat -notmatch 'py -3') { throw 'launcher Windows sem fallback py -3' }
+          Write-Host 'launcher Windows: estrutura OK'
       - uses: actions/upload-artifact@v4
         with:
           name: nexus3-${{ matrix.os }}-${{ matrix.python-version }}

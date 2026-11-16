@@ -39,6 +39,11 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     app = NexusApp(root=find_root(), start_engine=False)
     report = app.doctor()
     _print_json(report)
+    # --informational: o relatório é a saída; o código de saída NÃO é um gate.
+    # Usado pelo CI em checkout limpo (sem motor/modelo instalados por design).
+    # Sem a flag, doctor continua sendo um gate de prontidão (0 = pronto).
+    if getattr(args, "informational", False):
+        return 0
     return 0 if report["ok"] else 1
 
 
@@ -204,6 +209,10 @@ def main(argv: list[str] | None = None) -> int:
     p_start.set_defaults(func=cmd_start)
 
     p_doc = sub.add_parser("doctor", help="diagnóstica instalação e hardware")
+    p_doc.add_argument(
+        "--informational", action="store_true",
+        help="emite o relatório sem usar o código de saída como gate de prontidão (CI)",
+    )
     p_doc.set_defaults(func=cmd_doctor)
 
     p_setup = sub.add_parser("setup", help="instala o motor verificado")
