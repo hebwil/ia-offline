@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="440" viewBox="0 0 1280 440" role="img" aria-labelledby="title desc">
+<title id="title">WillTechBH IA Nexus Portable 3.0</title>
+<desc id="desc">Capa oficial do Nexus Portable 3.0, inteligência artificial local para Windows, macOS e Linux.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#091326"/><stop offset=".58" stop-color="#0a1636"/><stop offset="1" stop-color="#18113e"/></linearGradient>
+ <linearGradient id="neon" x1="0" x2="1"><stop stop-color="#1dd8ff"/><stop offset=".5" stop-color="#55a5ff"/><stop offset="1" stop-color="#af6bff"/></linearGradient>
+ <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#15294c"/><stop offset="1" stop-color="#151c3c"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="25"/></filter>
+ <pattern id="mesh" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M42 0H0V42" fill="none" stroke="#70aaff" stroke-opacity=".075"/></pattern>
+</defs>
+<rect width="1280" height="440" rx="24" fill="url(#bg)"/><rect width="1280" height="440" rx="24" fill="url(#mesh)"/>
+<circle cx="975" cy="175" r="160" fill="#2265f6" opacity=".25" filter="url(#glow)"/><circle cx="1160" cy="330" r="120" fill="#a355ff" opacity=".18" filter="url(#glow)"/>
+<path d="M0 370 C220 300 340 435 580 358 S950 296 1280 380" fill="none" stroke="url(#neon)" stroke-opacity=".26" stroke-width="3"/>
+<g transform="translate(67 62)">
+  <rect width="110" height="110" rx="26" fill="#102b53" stroke="#45a6ff" stroke-opacity=".55"/>
+  <path d="M28 81V30L55 56L82 30V81" fill="none" stroke="url(#neon)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28 30L82 81" stroke="#b8d8ff" stroke-width="5" stroke-opacity=".6"/>
+</g>
+<g font-family="Inter,Segoe UI,Arial,sans-serif">
+<text x="202" y="101" font-size="24" font-weight="700" fill="#a6c8ee" letter-spacing="3">WILLTECHBH  /  INTELIGÊNCIA LOCAL</text>
+<text x="69" y="239" font-size="74" font-weight="800" fill="#ffffff">NEXUS <tspan fill="#53baff">PORTABLE</tspan></text>
+<text x="72" y="302" font-size="57" font-weight="700" fill="#f2f6ff">3.0 <tspan fill="#c3adff" font-size="27">PREVIEW 1</tspan></text>
+<text x="72" y="349" font-size="25" fill="#c3d1e9">IA no seu computador. Seus modelos. Seus dados.</text>
+<text x="72" y="397" font-size="19" fill="#8fb1db">Windows x64  •  Linux x64  •  macOS Apple Silicon</text>
+</g>
+<g transform="translate(835 76)" font-family="Inter,Segoe UI,Arial,sans-serif">
+ <rect width="355" height="258" rx="19" fill="url(#panel)" stroke="#6197e8" stroke-opacity=".45"/>
+ <rect x="18" y="19" width="319" height="34" rx="9" fill="#0b1b38"/>
+ <circle cx="39" cy="36" r="5" fill="#ff7b88"/><circle cx="56" cy="36" r="5" fill="#ffcf71"/><circle cx="73" cy="36" r="5" fill="#6fe3ac"/>
+ <text x="98" y="41" font-size="14" fill="#afc9eb">Nexus Studio</text>
+ <g fill="#192f56" stroke="#416baf" stroke-opacity=".6">
+  <rect x="19" y="74" width="151" height="68" rx="12"/><rect x="185" y="74" width="151" height="68" rx="12"/>
+  <rect x="19" y="155" width="151" height="68" rx="12"/><rect x="185" y="155" width="151" height="68" rx="12"/>
+ </g>
+ <g fill="#cddfff" font-size="16" font-weight="600"><text x="38" y="114">IA local</text><text x="204" y="114">Documentos</text><text x="38" y="195">Agentes</text><text x="204" y="195">Diagnóstico</text></g>
+ <g fill="#48ceff"><circle cx="146" cy="91" r="5"/><circle cx="312" cy="91" r="5"/><circle cx="146" cy="172" r="5"/><circle cx="312" cy="172" r="5"/></g>
+ <rect x="19" y="238" width="317" height="5" rx="2" fill="url(#neon)" opacity=".8"/>
+</g>
+</svg>
