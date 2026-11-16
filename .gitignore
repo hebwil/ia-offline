@@ -1,0 +1,34 @@
+# Runtime e downloads verificados no primeiro uso
+bin/engines/**
+models/**
+!bin/engines/.gitkeep
+!models/.gitkeep
+
+# Estado mutável
+data/**
+state/**
+logs/**
+workspace/**
+dist/**
+!data/.gitkeep
+!state/.gitkeep
+!logs/.gitkeep
+!workspace/.gitkeep
+
+# Configuração de runtime (pode conter chave de API e autorização)
+config/nexus3.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.part
+*.tmp
+
+# Auditoria local (fora da árvore de distribuição)
+_audit-e2e.log

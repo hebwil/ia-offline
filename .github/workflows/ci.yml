@@ -1,0 +1,56 @@
+name: Nexus 3.0 CI
+
+on:
+  push:
+    branches: [develop/v3.0]
+  pull_request:
+    branches: [develop/v3.0]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Sintaxe
+        run: python -m compileall -q nexus3 nexus3.py
+      - name: Testes unitários e de integração HTTP
+        run: python nexus3.py selftest
+      - name: Diagnóstico
+        run: python nexus3.py doctor
+      - name: Pacotes portáteis
+        run: python nexus3.py build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nexus3-${{ matrix.os }}-${{ matrix.python-version }}
+          path: dist/*
+
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar hashes do manifesto
+        run: |
+          python - <<'PY'
+          import json, sys
+          sys.path.insert(0, '.')
+          from nexus3.engine import ENGINE_MANIFEST
+          from nexus3.models import ModelRegistry
+          from pathlib import Path
+          ok = True
+          for key, item in ENGINE_MANIFEST.items():
+              ok &= len(item['sha256']) == 64 and item['size'] > 0
+          reg = ModelRegistry(Path('.'))
+          for spec in reg.all():
+              for f in spec.files:
+                  ok &= len(f.sha256) == 64 and f.size > 0
+          print('manifesto íntegro' if ok else 'falha de integridade')
+          sys.exit(0 if ok else 1)
+          PY

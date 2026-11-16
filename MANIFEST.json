@@ -1,0 +1,84 @@
+{
+  "product": "WillTechBH IA Nexus Portable",
+  "version": "3.0.0-develop",
+  "status": "develop/v3.0 — não publicado",
+  "generated": "2026-11-16",
+  "repository_policy": {
+    "original_repository": "https://github.com/hebwil/ia-offline",
+    "original_tags_untouched": ["v1.0.0", "v2.0.0"],
+    "work_branch": "develop/v3.0 (isolado, sem remote, sem push)",
+    "authorization": "Nenhum release externo foi publicado."
+  },
+  "components": [
+    {
+      "name": "nexus3 core (platform/config/security/hardware/models/engine/router/agents/documents/rag/tools/chat/web/server)",
+      "origin": "Implementado na v3.0",
+      "license": "© 2026 WillTechBH — uso conforme autorização do proprietário",
+      "reused_from": []
+    },
+    {
+      "name": "Nexus Studio 3.0 (HTML/CSS/JS)",
+      "origin": "Reescrito na v3.0, inspirado na UX da v2.0",
+      "license": "© 2026 WillTechBH",
+      "reused_from": ["v2.0 conceito: sidebar de histórico, seletor de modo/agente, streaming SSE"]
+    },
+    {
+      "name": "pypdf 5.9.0 (vendor)",
+      "origin": "Reaproveitado integralmente de proxy/vendor/pypdf da Release v2.0.2",
+      "license": "MIT — ver docs/THIRD-PARTY.md",
+      "reused_from": ["Release v2.0.2: proxy/vendor/pypdf"]
+    },
+    {
+      "name": "Perfis de agentes",
+      "origin": "Prompts migrados e revisados de prompts/specialists.json (v2.0)",
+      "license": "© 2026 WillTechBH",
+      "reused_from": ["geral", "advogado", "programador", "tecnico", "pesquisador", "escritor", "imagem"],
+      "substitutions": ["perfil 'privado' preservado", "novo perfil 'analista de dados'"]
+    },
+    {
+      "name": "llama.cpp llama-server b12444",
+      "origin": "Binário oficial ggml-org/llama.cpp releases nightly",
+      "license": "MIT — LICENSE incluído no pacote baixado",
+      "verification": "SHA-256 do GitHub API `digest`, verificado no download",
+      "assets": {
+        "win-cpu-x64": "d17f82517cf6b5ee501953cc41ca1cdea0c2fb2a0aedd62b5c61e7b4fa6437bd",
+        "win-cpu-arm64": "5891fac3aa22b5a8bc0cdb942b9dda52431cc01c4aed92653812cf7413b7ce11",
+        "macos-arm64": "e1c00b152caa8c76680a0fbf3029b28b679f904b8fc2d8be9401f74cf41c46e1",
+        "macos-x64": "f5fc545dfbedef6b7d2fc8be0382e07ce63b2f9b10f8f80cb650132d4cb8c100",
+        "ubuntu-x64": "0c95d7980612331f0ea472efd43b7697739e884f077fe0d5e6bc69f377d4753b",
+        "ubuntu-arm64": "bf2fbd41b0743c3a3a4ca78011a5f34697b7dce2db44914d538881ff4490c21c"
+      }
+    },
+    {
+      "name": "Modelos GGUF no registro",
+      "origin": "Hugging Face — repositórios oficiais/comunitários verificados via API lfs.sha256 em 2026-11-16",
+      "license": "Apache-2.0 (Qwen3, Qwen2.5-Coder, MiniCPM-V), Gemma (EmbeddingGemma)",
+      "models": [
+        "Qwen/Qwen3-0.6B-GGUF", "Qwen/Qwen3-4B-GGUF", "Qwen/Qwen3-8B-GGUF",
+        "bartowski/Qwen2.5-Coder-7B-Instruct-GGUF", "ggml-org/MiniCPM-V-4.6-GGUF",
+        "ggml-org/embeddinggemma-300m-gguf"
+      ]
+    },
+    {
+      "name": "Busca externa opcional",
+      "origin": "Wikipedia REST API (pt.wikipedia.org), sem chave",
+      "license": "Conteúdo sob CC BY-SA — atribuição na resposta via URL da fonte",
+      "enabled_by_default": false
+    }
+  ],
+  "replaced_from_v2": [
+    {"component": "22 scripts PowerShell + 6 .bat", "replacement": "nexus3.py + módulos Python multiplataforma", "reason": "Portabilidade Windows/macOS/Linux e testabilidade"},
+    {"component": "download-manager.ps1 sem hash", "replacement": "DownloadManager com SHA-256, retomada e promoção atômica", "reason": "Falha real de integridade na v2.0"},
+    {"component": "model-selector.ps1", "replacement": "NexusRouter com capacidades, orçamento e justificativa", "reason": "Seleção explicável e degradação elegante"},
+    {"component": "host-detector.ps1 (PII em claro)", "replacement": "install-id anônimo", "reason": "Privacidade"},
+    {"component": "kill-nexus-processes.ps1 (PID reuse)", "replacement": "ProcessRegistry com verificação de binário", "reason": "Segurança"},
+    {"component": "config/nexus.json (570 linhas hotfix)", "replacement": "DEFAULTS versionado + config/nexus3.json gerado", "reason": "Manutenibilidade"},
+    {"component": "UI dark-only sem métricas", "replacement": "Nexus Studio responsivo com tema claro/escuro e painéis reais", "reason": "UX e honestidade de estado"}
+  ],
+  "not_distributed": [
+    "bin/engines/** (baixado com autorização)",
+    "models/**/*.gguf (baixado com autorização)",
+    "data/**, state/**, logs/** (estado local)",
+    "config/nexus3.json (config de runtime, pode conter segredos)"
+  ]
+}

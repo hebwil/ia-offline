@@ -1,0 +1,157 @@
+{
+  "schema": 3,
+  "updated": "2026-11-16",
+  "source": "Hugging Face API (lfs.sha256) e GitHub API (digest), consultados em 2026-11-16",
+  "models": [
+    {
+      "id": "qwen3-0.6b-q8",
+      "name": "Qwen3 0.6B Q8_0",
+      "type": "text",
+      "category": "nano",
+      "tags": ["pt-br", "geral", "leve", "tool-call"],
+      "capabilities": ["chat", "tools"],
+      "min_ram_gb": 4,
+      "recommended_ram_gb": 6,
+      "size_gb": 0.64,
+      "max_ctx": 32768,
+      "quality": 1,
+      "priority": 30,
+      "license": "apache-2.0",
+      "files": [
+        {
+          "path": "models/nano/Qwen3-0.6B-Q8_0.gguf",
+          "url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf",
+          "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+          "size": 639446688
+        }
+      ],
+      "notes": "Perfil de emergência para máquinas modestas. Q8_0 é o único quant oficial publicado."
+    },
+    {
+      "id": "qwen3-4b-q4",
+      "name": "Qwen3 4B Q4_K_M",
+      "type": "text",
+      "category": "compact",
+      "tags": ["pt-br", "geral", "raciocinio", "tool-call"],
+      "capabilities": ["chat", "tools", "reasoning"],
+      "min_ram_gb": 6,
+      "recommended_ram_gb": 8,
+      "size_gb": 2.5,
+      "max_ctx": 32768,
+      "quality": 3,
+      "priority": 80,
+      "license": "apache-2.0",
+      "files": [
+        {
+          "path": "models/compact/Qwen3-4B-Q4_K_M.gguf",
+          "url": "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf",
+          "sha256": "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5",
+          "size": 2497280256
+        }
+      ],
+      "notes": "Padrão recomendado: equilíbrio entre qualidade em português, raciocínio e consumo."
+    },
+    {
+      "id": "qwen3-8b-q4",
+      "name": "Qwen3 8B Q4_K_M",
+      "type": "text",
+      "category": "balanced",
+      "tags": ["pt-br", "geral", "juridico", "raciocinio", "tool-call"],
+      "capabilities": ["chat", "tools", "reasoning"],
+      "min_ram_gb": 10,
+      "recommended_ram_gb": 16,
+      "size_gb": 5.03,
+      "max_ctx": 32768,
+      "quality": 4,
+      "priority": 70,
+      "license": "apache-2.0",
+      "files": [
+        {
+          "path": "models/balanced/Qwen3-8B-Q4_K_M.gguf",
+          "url": "https://huggingface.co/Qwen/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf",
+          "sha256": "d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785",
+          "size": 5027783488
+        }
+      ],
+      "notes": "Para tarefas jurídicas, escrita longa e código em hardware intermediário/avançado."
+    },
+    {
+      "id": "qwen2.5-coder-7b-q4",
+      "name": "Qwen2.5 Coder 7B Q4_K_M",
+      "type": "text",
+      "category": "coder",
+      "tags": ["codigo", "scripts", "debug"],
+      "capabilities": ["chat", "code"],
+      "min_ram_gb": 10,
+      "recommended_ram_gb": 16,
+      "size_gb": 4.68,
+      "max_ctx": 32768,
+      "quality": 4,
+      "priority": 40,
+      "license": "apache-2.0",
+      "files": [
+        {
+          "path": "models/coder/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf",
+          "url": "https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf",
+          "sha256": "1664fccab734674a50763490a8c6931b70e3f2f8ec10031b54806d30e5f956b6",
+          "size": 4683074336
+        }
+      ],
+      "notes": "Reaproveitado da v2.0; agora com hash verificado e uso sob demanda pelo router."
+    },
+    {
+      "id": "minicpm-v-4.6",
+      "name": "MiniCPM-V 4.6 Q4_K_M + mmproj Q8_0",
+      "type": "vision",
+      "category": "vision",
+      "tags": ["imagem", "ocr", "pt-br"],
+      "capabilities": ["vision", "chat"],
+      "min_ram_gb": 8,
+      "recommended_ram_gb": 12,
+      "size_gb": 1.26,
+      "max_ctx": 8192,
+      "quality": 3,
+      "priority": 20,
+      "license": "apache-2.0",
+      "files": [
+        {
+          "path": "models/vision/MiniCPM-V-4.6-Q4_K_M.gguf",
+          "url": "https://huggingface.co/ggml-org/MiniCPM-V-4.6-GGUF/resolve/main/MiniCPM-V-4.6-Q4_K_M.gguf",
+          "sha256": "b1a5aa76b5ef039c2e579272ea33d4bbed7e79b49bb3ff1efdb23316d6af5199",
+          "size": 529101536
+        },
+        {
+          "path": "models/vision/mmproj-MiniCPM-V-4.6-Q8_0.gguf",
+          "url": "https://huggingface.co/ggml-org/MiniCPM-V-4.6-GGUF/resolve/main/mmproj-MiniCPM-V-4.6-Q8_0.gguf",
+          "sha256": "3d8249cdd0e1cb699644eb021fbcc04320aad89fa5dc9234ef94db0846556581",
+          "size": 727954528
+        }
+      ],
+      "notes": "Corrige a divergência de URL do mmproj existente na v2.0."
+    },
+    {
+      "id": "embeddinggemma-300m",
+      "name": "EmbeddingGemma 300M Q8_0",
+      "type": "embedding",
+      "category": "embedding",
+      "tags": ["rag", "semantica", "embeddings"],
+      "capabilities": ["embeddings"],
+      "min_ram_gb": 2,
+      "recommended_ram_gb": 4,
+      "size_gb": 0.33,
+      "max_ctx": 8192,
+      "quality": 2,
+      "priority": 10,
+      "license": "gemma",
+      "files": [
+        {
+          "path": "models/embedding/embeddinggemma-300M-Q8_0.gguf",
+          "url": "https://huggingface.co/ggml-org/embeddinggemma-300m-gguf/resolve/main/embeddinggemma-300M-Q8_0.gguf",
+          "sha256": "b5ce9d77a3fc4b3b39ccb5643c36777911cc4eb46a66962eadfa3f5f60490d63",
+          "size": 333590944
+        }
+      ],
+      "notes": "Opcional. Sem ele, a busca semântica usa apenas indexação lexical local."
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>WillTechBH IA Nexus Studio 3.0</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">N3</div>
+      <div class="brand-text">
+        <strong>Nexus Studio</strong>
+        <span id="brandVersion">WillTechBH IA · carregando…</span>
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="mode-switch" role="group" aria-label="Modo de operação">
+        <button id="btnOffline" class="mode-btn active" type="button" aria-pressed="true">🔒 Offline</button>
+        <button id="btnOnline" class="mode-btn" type="button" aria-pressed="false" title="Permite busca externa apenas nesta sessão">🌐 Online</button>
+      </div>
+      <button id="btnTheme" class="icon-btn" type="button" title="Alternar tema" aria-label="Alternar tema">◐</button>
+      <span id="healthPill" class="pill warning">Verificando…</span>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar" aria-label="Conversas e perfis">
+        <button id="btnNewChat" class="btn primary block">+ Nova conversa</button>
+
+        <section class="block">
+          <label for="historySearch">Buscar no histórico</label>
+          <input id="historySearch" type="search" placeholder="Título ou conteúdo…" autocomplete="off">
+        </section>
+
+        <section class="block">
+          <div class="section-head"><strong>Histórico</strong><button id="btnRefreshHistory" class="link-btn" type="button">↻</button></div>
+          <div id="historyList" class="history-list"><p class="muted">Carregando…</p></div>
+        </section>
+
+        <section class="block">
+          <label for="agentSelect">Agente</label>
+          <select id="agentSelect"><option value="automatico">Automático</option></select>
+          <small id="agentHint" class="muted">O roteador escolhe conforme a tarefa.</small>
+        </section>
+
+        <section class="block">
+          <label for="modelSelect">Modelo ativo</label>
+          <select id="modelSelect"><option value="">Carregando…</option></select>
+          <small class="muted">Trocar modelo reinicia o motor local.</small>
+        </section>
+
+        <footer class="sidebar-foot">
+          <span id="installationId">instalação: —</span>
+          <button id="btnSettings" class="link-btn" type="button">Configurações</button>
+        </footer>
+      </aside>
+
+      <main class="chat-pane">
+        <section id="chatLog" class="chat-log" aria-live="polite">
+          <div class="welcome">
+            <div class="orb" aria-hidden="true"></div>
+            <h1>Nexus pronto para trabalhar</h1>
+            <p id="welcomeStatus">Detectando hardware e motor local…</p>
+            <div class="welcome-grid">
+              <div class="mini-card"><span class="mini-label">Plataforma</span><strong id="miniPlatform">—</strong></div>
+              <div class="mini-card"><span class="mini-label">Perfil</span><strong id="miniTier">—</strong></div>
+              <div class="mini-card"><span class="mini-label">RAM</span><strong id="miniRam">—</strong></div>
+              <div class="mini-card"><span class="mini-label">Motor</span><strong id="miniEngine">—</strong></div>
+            </div>
+          </div>
+        </section>
+
+        <div id="attachmentBar" class="attachment-bar" hidden></div>
+        <div id="streamStatus" class="stream-status" hidden></div>
+
+        <form id="chatForm" class="composer">
+          <div class="composer-box">
+            <textarea id="messageInput" rows="2" placeholder="Escreva em português… Enter envia, Shift+Enter quebra linha" aria-label="Mensagem"></textarea>
+            <div class="composer-tools">
+              <label class="btn ghost file-btn" for="fileInput">📎 Anexar</label>
+              <input id="fileInput" type="file" multiple hidden
+                     accept=".pdf,.docx,.xlsx,.csv,.txt,.md,.json,.log,.py,.js,.html,.css,image/png,image/jpeg,image/webp">
+              <button id="btnClear" class="btn ghost" type="button">Limpar conversa</button>
+              <span class="spacer"></span>
+              <span id="charCount" class="muted">0 chars</span>
+            </div>
+          </div>
+          <button id="btnSend" class="btn send" type="submit">Enviar</button>
+        </form>
+      </main>
+
+      <aside class="inspector" aria-label="Painel de sistema">
+        <nav class="tabs" role="tablist">
+          <button class="tab active" data-tab="system" role="tab" type="button">Sistema</button>
+          <button class="tab" data-tab="docs" role="tab" type="button">Documentos</button>
+          <button class="tab" data-tab="models" role="tab" type="button">Modelos</button>
+          <button class="tab" data-tab="health" role="tab" type="button">Diagnóstico</button>
+        </nav>
+
+        <div class="tab-content active" id="tab-system">
+          <div class="metric-grid">
+            <div class="metric"><span>CPU</span><strong id="metricCpu">—</strong></div>
+            <div class="metric"><span>RAM livre</span><strong id="metricRam">—</strong></div>
+            <div class="metric"><span>VRAM</span><strong id="metricVram">—</strong></div>
+            <div class="metric"><span>Sistema</span><strong id="metricFs">—</strong></div>
+          </div>
+          <h3>Roteador inteligente</h3>
+          <div id="routePanel" class="route-panel"><p class="muted">Envie uma mensagem para ver a decisão do roteador.</p></div>
+          <h3>Agentes</h3>
+          <div id="agentList" class="chip-list"></div>
+          <h3>Privacidade</h3>
+          <ul class="plain-list">
+            <li>Histórico e documentos ficam na pasta do projeto.</li>
+            <li>Modo online só envia o texto da consulta, mediante sua escolha.</li>
+            <li>Nenhum documento é enviado para serviços externos.</li>
+          </ul>
+        </div>
+
+        <div class="tab-content" id="tab-docs">
+          <p class="muted">Arquivos são extraídos e indexados localmente.</p>
+          <label class="btn ghost block file-btn" for="docInput">Adicionar documento</label>
+          <input id="docInput" type="file" multiple hidden>
+          <input id="docSearch" type="search" placeholder="Buscar nos documentos indexados…">
+          <div id="docResults" class="doc-results"></div>
+          <h3>Indexados</h3>
+          <div id="docList" class="doc-list"></div>
+        </div>
+
+        <div class="tab-content" id="tab-models">
+          <div class="consent-row">
+            <label><input id="chkDownloads" type="checkbox"> Autorizar downloads verificados</label>
+            <small class="muted">Nada é baixado sem esta autorização explícita.</small>
+          </div>
+          <div id="modelManager" class="model-manager"></div>
+        </div>
+
+        <div class="tab-content" id="tab-health">
+          <button id="btnDoctor" class="btn primary block">Executar diagnóstico</button>
+          <div id="doctorPanel" class="doctor-panel"><p class="muted">Nenhum diagnóstico executado ainda.</p></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="errorBanner" class="error-banner" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
