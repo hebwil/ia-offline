@@ -107,9 +107,13 @@ Relatórios: `_audit/00-ESTADO-ORIGINAL.md`, `_audit/02-RELATORIO-FINAL.md`, `v3
 - `dist/SHA256SUMS.txt` gerado e verificado para os três pacotes publicáveis.
 - `gh` autenticado como `hebwil` com permissão `ADMIN` no repositório público `hebwil/ia-offline`.
 
-**Estado atual:** commit `a84c481` contém as correções; remote oficial `https://github.com/hebwil/ia-offline.git` configurado. O push de `develop/v3.0` foi rejeitado pelo GitHub porque o token OAuth do `gh` não possui o escopo `workflow`, obrigatório para criar `.github/workflows/ci.yml`. Uma tentativa com deploy key SSH temporária recebeu a mesma rejeição; a chave foi removida. Nenhuma branch remota `develop/v3.0`, tag ou release 3.0 foi criada. `main`, `v1.0.0`, `v2.0.0` e a release 2.0 permanecem intactas.
+**Push e CI:** após a expansão do escopo `workflow`, `develop/v3.0` foi publicada com os commits existentes. A primeira CI (`43971065550`) falhou somente nos jobs Python 3.10: o `pypdf` vendido importava `typing_extensions.Self`, ausente no runtime stdlib. Correção objetiva em `492835a`: fallback para `typing.TypeVar` nos dois pontos de importação; teste afetado validado e import simulado em Python 3.10. A segunda CI (`43971732157`, commit `492835a`) terminou **success**: 13 jobs verdes, incluindo `integrity`, 9 jobs de teste (Windows/macOS/Linux × Python 3.10/3.12/3.13) e os 3 jobs de homologação com inferência real em `windows-latest`, `ubuntu-latest` e `macos-latest` ARM64. Evidência: `https://github.com/hebwil/ia-offline/actions/runs/43971732157`.
 
-**Próxima ação (credencial, não autorização de publicação):** expandir o token com `gh auth refresh -h github.com -s workflow`, repetir o push e somente então executar CI, tag e release.
+**Pacotes finais:** reconstruídos a partir do commit `492835a`; `SHA256SUMS.txt` regenerado e verificado. Os três arquivos publicáveis contêm a correção Python 3.10.
+
+**Estado atual:** branch `develop/v3.0` publicada; tag e release 3.0 ainda não criadas. `main`, `v1.0.0`, `v2.0.0` e a release 2.0 permanecem intactas.
+
+**Próxima ação:** registrar as evidências finais em README/CHANGELOG, fazer commit, repetir a CI no commit final e somente então criar tag e Pre-release.
 
 ---
 
@@ -117,14 +121,14 @@ Relatórios: `_audit/00-ESTADO-ORIGINAL.md`, `_audit/02-RELATORIO-FINAL.md`, `v3
 
 | Plataforma | Launcher | Motor no manifesto | Evidência real | CI nativa (inferência real) | Homologada? |
 |---|---|---|---|---|---|
-| Windows x64 | `start-windows.bat` | win-cpu-x64 | ❌ | configurada em `windows-latest` — aguardando execução | ❌ (aguardando CI) |
+| Windows x64 | `start-windows.bat` | win-cpu-x64 | inferência real em CI | ✅ `windows-latest`, job `homologacao` | ✅ homologada |
 | Windows arm64 | `start-windows.bat` | win-cpu-arm64 | ❌ | ❌ | ❌ (experimental) |
-| macOS arm64 | `start-macos.command` | macos-arm64 | ✅ E2E local, pacote extraído e testado, 10/10 checks | configurada em `macos-latest` — aguardando execução | ✅ local; CI pendente |
+| macOS arm64 | `start-macos.command` | macos-arm64 | E2E local, pacote extraído, 10/10 checks + inferência real em CI | ✅ `macos-latest`, job `homologacao` | ✅ homologada |
 | macOS x64 (Intel) | `start-macos.command` | macos-x64 | ❌ | ❌ | ❌ (experimental) |
-| Linux x64 | `start-linux.sh` | ubuntu-x64 | ❌ | configurada em `ubuntu-latest` — aguardando execução | ❌ (aguardando CI) |
+| Linux x64 | `start-linux.sh` | ubuntu-x64 | inferência real em CI | ✅ `ubuntu-latest`, job `homologacao` | ✅ homologada |
 | Linux arm64 | `start-linux.sh` | ubuntu-arm64 | ❌ | ❌ | ❌ (experimental) |
 
-**Nota:** "Evidência real" = inferência executada no SO/hardware da plataforma. Job de homologação por CI com inferência real é obrigatório para declarar Windows x64, Linux x64 e macOS ARM64 homologados na release. Até a CI concluir, apenas macOS ARM64 possui homologação local comprovada.
+**Nota:** "Evidência real" = inferência executada no SO/hardware da plataforma. As três plataformas obrigatórias foram homologadas por job de CI com inferência real no run `43971732157`.
 
 **Pacotes por plataforma:** Lite (código) serve a todas; Offline Complete construído apenas para **macos-arm64**, única com motor e modelo verificados localmente. Offline para Windows/Linux depende de homologação + download autorizado dos binários dessas plataformas.
 
@@ -132,7 +136,6 @@ Relatórios: `_audit/00-ESTADO-ORIGINAL.md`, `_audit/02-RELATORIO-FINAL.md`, `v3
 
 ## Pendências reais (carreadas — ver `docs/LIMITACOES.md`)
 
-- Windows x64 e Linux x64: homologação depende da execução verde do job `homologacao` na CI nativa.
 - Windows ARM64, Linux ARM64 e macOS Intel: experimentais, sem teste real.
 - GPU CUDA/ROCm/Vulkan não homologada.
 - OCR depende de `tesseract` no PATH.
@@ -144,8 +147,7 @@ Relatórios: `_audit/00-ESTADO-ORIGINAL.md`, `_audit/02-RELATORIO-FINAL.md`, `v3
 
 ## Próximos passos
 
-1. Fazer o commit destas correções e configurar o remote oficial `https://github.com/hebwil/ia-offline`.
-2. Fazer push de `develop/v3.0` e acompanhar a CI: 64 testes, verificações estáticas e job `homologacao` com inferência real nas três plataformas obrigatórias.
-3. Se houver falha, corrigir somente a causa afetada e repetir testes/verificações de regressão.
-4. Com a CI verde, atualizar matriz, README e CHANGELOG com as evidências, validar pacotes/checksums e repetir a CI no commit final.
-5. Criar tag `v3.0.0-preview.1`, publicar a Pre-release com pacotes e `SHA256SUMS.txt`, verificar URLs públicas e confirmar que `main`, `v1.0.0`, `v2.0.0` e a release 2.0 permanecem intactos.
+1. Fazer commit das evidências finais em README/CHANGELOG/CONTINUIDADE e repetir a CI no commit final.
+2. Criar tag `v3.0.0-preview.1` no commit homologado.
+3. Publicar a Pre-release `WillTechBH IA Nexus Portable 3.0 — Preview 1` com os três pacotes e `SHA256SUMS.txt`.
+4. Verificar URLs públicas da release e dos anexos, e confirmar que `main`, `v1.0.0`, `v2.0.0` e a release 2.0 permanecem intactos.

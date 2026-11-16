@@ -4,19 +4,19 @@
 
 > IA para quem precisa de resultado, não de assinatura.
 
-Status: **`v3.0.0-preview.1` — Pre-release.** Homologação final em validação na CI desta branch; veja a matriz abaixo e `docs/CONTINUIDADE.md`.
+Status: **`v3.0.0-preview.1` — Pre-release.** Homologação aprovada em CI para Windows x64, Linux x64 e macOS ARM64, com inferência real em runners nativos; veja a matriz abaixo e `docs/CONTINUIDADE.md`.
 As tags `v1.0.0` e `v2.0.0` e todos os arquivos da versão 2.0 permanecem intactos.
 
 **Matriz de compatibilidade**
 
 | Plataforma | Status | Evidência |
 |---|---|---|
-| Windows x64 | aguardando evidência da CI | runner nativo `windows-latest`, job `homologacao` com inferência real |
-| Linux x64 | aguardando evidência da CI | runner nativo `ubuntu-latest`, job `homologacao` com inferência real |
-| macOS ARM64 | homologada localmente; CI em validação | E2E real local + pacote Offline Complete extraído e testado + job `homologacao` em `macos-latest` |
+| Windows x64 | homologada via CI | runner nativo `windows-latest`, job `homologacao` com inferência real |
+| Linux x64 | homologada via CI | runner nativo `ubuntu-latest`, job `homologacao` com inferência real |
+| macOS ARM64 | homologada via CI | runner nativo `macos-latest` (ARM64), job `homologacao` com inferência real + pacote Offline Complete extraído e testado localmente |
 | Windows ARM64 · Linux ARM64 · macOS Intel | experimentais | binário no manifesto, sem teste real — não homologadas |
 
-> "Homologada" exige inferência real comprovada, não apenas presença do binário no manifesto.
+> "Homologada" exige inferência real comprovada, não apenas presença do binário no manifesto. Evidência: [CI run 43971732157](https://github.com/hebwil/ia-offline/actions/runs/43971732157) — 13 jobs verdes, incluindo os três jobs de homologação.
 
 ---
 
