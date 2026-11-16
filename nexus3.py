@@ -153,48 +153,58 @@ def cmd_selftest(args: argparse.Namespace) -> int:
 
 
 def cmd_build(args: argparse.Namespace) -> int:
-    """Gera arquivos portáteis sem binários/modelos (download verificado no primeiro uso)."""
-    import tarfile
-    import zipfile
+    """Gera pacotes Nexus Lite e/ou Offline Complete."""
+    from nexus3.packaging import (
+        PROFILE_LITE, PROFILE_OFFLINE, PackageError,
+        build_lite, build_offline, ready_offline_platforms,
+    )
 
     root = find_root()
-    out = root / "dist"
+    profile = getattr(args, "profile", "lite")
+    artifacts: list[Path] = []
     try:
-        out.mkdir(exist_ok=True)
-    except FileExistsError:
-        pass
-    include = ("nexus3.py", "nexus3/", "config/", "scripts/", "docs/", "MANIFEST.json", "README.md", "CHANGELOG.md")
-    exclude_dirs = {"__pycache__"}
-    stamp = __import__("datetime").datetime.now().strftime("%Y%m%d")
+        if profile in ("lite", "all"):
+            artifacts += build_lite(root)
+        if profile in ("offline", "all"):
+            platforms = ready_offline_platforms(root)
+            if not platforms:
+                print(
+                    "ERRO: nenhuma plataforma com motor e modelo verificados localmente. "
+                    "Execute 'setup --yes' e 'models install <id> --yes' primeiro.",
+                    file=sys.stderr,
+                )
+                return 3
+            print("Plataformas prontas para Offline Complete: " + ", ".join(p["key"] for p in platforms))
+            artifacts += build_offline(
+                root,
+                platform_key=getattr(args, "platform", None),
+                model_id=getattr(args, "model", None),
+            )
+    except PackageError as exc:
+        print(f"ERRO: {exc}", file=sys.stderr)
+        return 4
+    for artifact in artifacts:
+        size_mb = artifact.stat().st_size / 1048576
+        unit = "MB" if size_mb >= 1 else "KB"
+        value = size_mb if size_mb >= 1 else artifact.stat().st_size / 1024
+        print(f"{artifact.name}: {value:.0f} {unit}")
+    if not artifacts:
+        print("Nenhum pacote gerado.", file=sys.stderr)
+        return 5
+    return 0
 
-    def members():
-        for pattern in include:
-            path = root / pattern
-            if path.is_file():
-                yield path
-            elif path.is_dir():
-                for file in path.rglob("*"):
-                    rel = file.relative_to(root)
-                    if file.is_file() and not any(part in exclude_dirs for part in rel.parts[:-1]):
-                        if file.suffix == ".pyc":
-                            continue
-                        # Configuração de runtime nunca é distribuída: ela pode
-                        # conter autorização de download ou chave de API.
-                        if rel.as_posix() == "config/nexus3.json":
-                            continue
-                        yield file
 
-    windows = out / f"WillTechBH-IA-Nexus-3.0-win-portable-{stamp}.zip"
-    with zipfile.ZipFile(windows, "w", zipfile.ZIP_DEFLATED) as zf:
-        for file in members():
-            zf.write(file, Path("WillTechBH-IA-Nexus-3.0") / file.relative_to(root))
-    unix = out / f"WillTechBH-IA-Nexus-3.0-unix-portable-{stamp}.tar.gz"
-    with tarfile.open(unix, "w:gz") as tf:
-        for file in members():
-            tf.add(file, arcname=Path("WillTechBH-IA-Nexus-3.0") / file.relative_to(root))
-    for artifact in (windows, unix):
-        print(f"{artifact.name}: {artifact.stat().st_size / 1024:.0f} KB")
-    print("Pacotes sem modelos/engines: o primeiro uso exige download autorizado.")
+def cmd_update(args: argparse.Namespace) -> int:
+    """Atualiza o codigo a partir de um pacote, preservando dados e modelos."""
+    from nexus3.packaging import PackageError, apply_update
+
+    try:
+        result = apply_update(Path(args.package), find_root())
+    except (PackageError, ValueError, OSError) as exc:
+        print(f"ERRO: {exc}", file=sys.stderr)
+        return 2
+    _print_json(result)
+    print("\nReinicie a aplicacao para carregar o novo codigo.")
     return 0
 
 
@@ -225,8 +235,18 @@ def main(argv: list[str] | None = None) -> int:
     p_models.add_argument("--yes", action="store_true", help="autoriza o download")
     p_models.set_defaults(func=cmd_models)
 
-    p_build = sub.add_parser("build", help="gera pacotes portáteis")
+    p_build = sub.add_parser("build", help="gera pacotes Lite e Offline Complete")
+    p_build.add_argument(
+        "--profile", choices=["lite", "offline", "all"], default="lite",
+        help="lite (padrao): so codigo; offline: motor+modelo verificados; all: ambos",
+    )
+    p_build.add_argument("--platform", help="filtra a plataforma do pacote offline (ex.: macos-arm64)")
+    p_build.add_argument("--model", help="id do modelo a incluir no pacote offline")
     p_build.set_defaults(func=cmd_build)
+
+    p_update = sub.add_parser("update", help="atualiza o codigo preservando dados e modelos")
+    p_update.add_argument("package", help="caminho do pacote .zip ou .tar.gz")
+    p_update.set_defaults(func=cmd_update)
 
     p_test = sub.add_parser("selftest", help="executa testes automatizados")
     p_test.set_defaults(func=cmd_selftest)
