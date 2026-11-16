@@ -80,6 +80,10 @@ class RouteDecision:
     rationale: list[str] = field(default_factory=list)
     estimated_seconds: float = 0.0
     fallback_used: bool = False
+    vision_model_id: str = ""
+    vision_available: bool = False
+    has_image_input: bool = False
+    estimate_basis: str = "nao_medido"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -89,6 +93,10 @@ class RouteDecision:
             "needs_web": self.needs_web, "needs_documents": self.needs_documents,
             "needs_vision": self.needs_vision, "rationale": self.rationale,
             "estimated_seconds": round(self.estimated_seconds, 1),
+            "estimate_basis": self.estimate_basis,
+            "vision_model_id": self.vision_model_id,
+            "vision_available": self.vision_available,
+            "has_image_input": self.has_image_input,
             "fallback_used": self.fallback_used,
         }
 
@@ -124,7 +132,9 @@ def analyze(message: str, attachments: list[dict[str, Any]] | None = None) -> Si
 def choose_agent(signal: Signal, requested: str = "automatico", online: bool = False) -> str:
     if requested and requested != "automatico" and requested in AGENTS:
         return requested
-    if signal.needs_vision or signal.has_images:
+    # A menção verbal a "imagem" não prova que existe uma imagem anexada.
+    # Só acionamos o agente de visão quando há payload de imagem real.
+    if signal.has_images:
         return "imagem"
     if signal.needs_legal:
         return "advogado"
@@ -161,53 +171,83 @@ class NexusRouter:
         )
         rationale.append(f"Agente '{chosen_agent}' selecionado para o tipo de tarefa.")
 
+        wants_vision = signal.has_images
         installed_text = [
             spec for spec in self.registry.all()
             if spec.type == "text" and installation_status(self.registry.root, spec)[0]
         ]
+        installed_vision = [
+            spec for spec in self.registry.all()
+            if spec.type == "vision"
+            and installation_status(self.registry.root, spec)[0]
+            and spec.min_ram_gb <= self.hardware.ram_total_gb + 0.5
+        ]
         fallback = False
-        if not installed_text:
-            # Nada instalado: ainda devolvemos uma recomendação instalável.
-            spec, reason = self.registry.select(
-                self.hardware, {"chat"}, "text", preferred_model, installed_only=False
-            )
-            fallback = True
-            rationale.append("Nenhum modelo de texto instalado; recomendação para instalação: " + reason)
-            if spec is None:
-                spec = self.registry.get("qwen3-0.6b-q8")
-        else:
-            pool = installed_text
-            required = signal.required_capabilities()
-            if "vision" in required:
-                vision = [s for s in self.registry.all() if s.type == "vision"
-                          and installation_status(self.registry.root, s)[0]]
-                if vision:
-                    spec = max(vision, key=lambda s: s.quality)
-                    rationale.append("Modelo de visão instalado escolhido para imagem anexada.")
-                else:
-                    rationale.append("Imagem detectada, mas nenhum modelo de visão instalado; visão não será simulada.")
-                    required = {"chat"}
-            spec, reason = self.registry.select(
-                self.hardware, required, "text", preferred_model,
-                installed_only=True,
-            )
-            if spec is None and required != {"chat"}:
-                spec, reason = self.registry.select(
-                    self.hardware, {"chat"}, "text", preferred_model, installed_only=True
+        vision_spec: ModelSpec | None = None
+        spec: ModelSpec | None = None
+        reason = ""
+
+        if wants_vision:
+            if installed_vision:
+                vision_spec = max(installed_vision, key=lambda s: (s.quality, s.priority))
+                spec = vision_spec
+                reason = (
+                    f"{vision_spec.name}: único tipo com capacidade de visão verificada; "
+                    f"{vision_spec.min_ram_gb} GB RAM mínima dentro do hardware detectado."
                 )
-                rationale.append("Capacidade especializada indisponível; degradado para modelo de texto: " + reason)
-            if spec is None:
-                spec = pool[0]
-                rationale.append("Fallback para o único modelo de texto instalado.")
-            rationale.append("Seleção: " + reason)
+                rationale.append("Imagem anexada: modelo de visão verificado selecionado (sem simulação).")
+            else:
+                rationale.append(
+                    "Imagem anexada, mas nenhum modelo de visão verificado e compatível com a RAM detectada. "
+                    "A inferência de imagem será recusada explicitamente; texto continua disponível."
+                )
+
+        if spec is None:
+            required = signal.required_capabilities()
+            required.discard("vision")
+            if not installed_text:
+                caps = {"chat", "vision"} if wants_vision else required
+                model_type = "vision" if wants_vision else "text"
+                spec, reason = self.registry.select(
+                    self.hardware, caps, model_type, preferred_model, installed_only=False
+                )
+                fallback = True
+                rationale.append(
+                    ("Nenhum modelo de visão instalado; " if wants_vision else "Nenhum modelo de texto instalado; ")
+                    + "recomendação para instalação: " + reason
+                )
+                if spec is None:
+                    spec = self.registry.get(
+                        "minicpm-v-4.6" if wants_vision else "qwen3-0.6b-q8"
+                    )
+            else:
+                spec, reason = self.registry.select(
+                    self.hardware, required, "text", preferred_model, installed_only=True
+                )
+                if spec is None and "code" in required:
+                    spec, reason = self.registry.select(
+                        self.hardware, {"chat"}, "text", preferred_model, installed_only=True
+                    )
+                    rationale.append(
+                        "Modelo com capacidade 'code' não está instalado; degradado para chat textual: " + reason
+                    )
+                if spec is None:
+                    spec = installed_text[0]
+                    reason = "Fallback para o único modelo de texto instalado e verificado."
+                    rationale.append(reason)
+                else:
+                    rationale.append("Seleção entre modelos instalados: " + reason)
 
         spec = spec or self.registry.get("qwen3-4b-q4")
         model_id = spec.id if spec else "unknown"
 
         ctx = context_recommendation(self.hardware, spec.max_ctx if spec else 4096)
-        if signal.needs_docs or doc_hits:
-            ctx = min(spec.max_ctx if spec else 8192, max(ctx, 8192))
-            rationale.append("Contexto ampliado para 8192 tokens por presença de documentos.")
+        if (signal.needs_docs or doc_hits) and spec:
+            target_ctx = 8192
+            ctx = min(spec.max_ctx, max(ctx, target_ctx))
+            rationale.append(
+                f"Contexto ajustado para {ctx} tokens por documentos (limite do modelo: {spec.max_ctx})."
+            )
         gpu_layers = gpu_layers_recommendation(self.hardware)
         rationale.append(
             f"Hardware {self.hardware.tier} com {self.hardware.ram_total_gb:.1f} GB RAM e "
@@ -227,10 +267,10 @@ class NexusRouter:
         if signal.needs_code:
             max_tokens = 2048
 
-        size_gb = spec.size_gb if spec else 2.5
-        effective_gb = min(size_gb, self.hardware.vram_total_gb or size_gb)
-        throughput = 6.0 if self.hardware.vram_total_gb >= 4 else 1.6
-        estimated = 3 + (max_tokens / throughput) + (signal.chars / 900)
+        # A versão anterior inventava 6 tok/s (GPU) e 1.6 tok/s (CPU). Isso
+        # era exibido como previsão real. Sem telemetria, o valor é zero e a
+        # interface informa explicitamente que não há estimativa medida.
+        rationale.append("Tempo estimado omitido: nenhuma medição de inferência foi coletada nesta decisão.")
 
         return RouteDecision(
             model_id=model_id,
@@ -241,8 +281,12 @@ class NexusRouter:
             max_tokens=max_tokens,
             needs_web=bool(online and signal.needs_research),
             needs_documents=bool(signal.needs_docs or doc_hits),
-            needs_vision=bool(signal.needs_vision or signal.has_images),
+            needs_vision=bool(signal.needs_vision or wants_vision),
             rationale=rationale,
-            estimated_seconds=estimated,
+            estimated_seconds=0.0,
+            estimate_basis="nao_medido",
+            vision_model_id=vision_spec.id if vision_spec else "",
+            vision_available=bool(vision_spec),
+            has_image_input=wants_vision,
             fallback_used=fallback,
         )

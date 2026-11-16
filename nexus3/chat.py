@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .security import load_json
+from .security import AtomicWriter, load_json
 
 
 class ChatStore:
@@ -16,11 +16,12 @@ class ChatStore:
         self.root = Path(root)
         self.dir = self.root / "data" / "chats"
         self.dir.mkdir(parents=True, exist_ok=True)
+        self.writer = AtomicWriter(self.root)
         self.active = ""
 
     def new(self) -> str:
         sid = datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
-        (self.dir / f"{sid}.json").write_text("[]", encoding="utf-8")
+        self.writer.write_json(f"data/chats/{sid}.json", [], backup=False)
         self.active = sid
         return sid
 
@@ -42,14 +43,12 @@ class ChatStore:
             "role": role, "content": content, "source": source,
             "at": datetime.now().isoformat(timespec="seconds"), **extra,
         })
-        self.path(sid).write_text(
-            json.dumps(messages, ensure_ascii=False, indent=1), encoding="utf-8"
-        )
+        self.writer.write_json(f"data/chats/{sid}.json", messages, backup=True)
 
     def clear(self, sid: str | None = None) -> None:
         sid = sid or self.active
         if sid:
-            self.path(sid).write_text("[]", encoding="utf-8")
+            self.writer.write_json(f"data/chats/{sid}.json", [], backup=True)
 
     def delete(self, sid: str) -> bool:
         path = self.path(sid)

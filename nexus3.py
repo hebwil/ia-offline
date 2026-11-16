@@ -121,6 +121,8 @@ def cmd_start(args: argparse.Namespace) -> int:
     server = run_server(app, host="127.0.0.1", port=args.port or 0)
     url = f"http://127.0.0.1:{server.server_port}/"
     print(f"WillTechBH IA Nexus {__version__} em {url}")
+    print("O navegador recebe uma sessão local automaticamente.")
+    print(f"Token para API/CLI (Authorization: Bearer ...): {app.api_key}")
     for error in app.startup_errors:
         print(f"AVISO: {error}", file=sys.stderr)
     if not args.no_browser:
@@ -157,7 +159,7 @@ def cmd_build(args: argparse.Namespace) -> int:
     except FileExistsError:
         pass
     include = ("nexus3.py", "nexus3/", "config/", "scripts/", "docs/", "MANIFEST.json", "README.md", "CHANGELOG.md")
-    exclude_dirs = {"__pycache__", "vendor/__pycache__", "tests/__pycache__"}
+    exclude_dirs = {"__pycache__"}
     stamp = __import__("datetime").datetime.now().strftime("%Y%m%d")
 
     def members():

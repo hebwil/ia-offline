@@ -20,17 +20,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from nexus3.server import NexusApp, run_server  # noqa: E402
 
 
-def post(base: str, path: str, payload: dict) -> dict:
+def post(base: str, path: str, payload: dict, token: str) -> dict:
     request = urllib.request.Request(
         base + path, data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}, method="POST",
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
+        method="POST",
     )
     with urllib.request.urlopen(request, timeout=180) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
-def get(base: str, path: str) -> dict:
-    with urllib.request.urlopen(base + path, timeout=20) as response:
+def get(base: str, path: str, token: str) -> dict:
+    request = urllib.request.Request(
+        base + path, headers={"Authorization": f"Bearer {token}"}
+    )
+    with urllib.request.urlopen(request, timeout=20) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
@@ -57,7 +61,7 @@ def main() -> int:
 
     print("\n== CHAT SIMPLES (não-stream) ==")
     started = time.time()
-    result = post(base, "/api/chat", {"message": "Responda em uma frase: o que é o Nexus Portable?"})
+    result = post(base, "/api/chat", {"message": "Responda em uma frase: o que é o Nexus Portable?"}, app.api_key)
     print("reply:", result.get("reply", "")[:500].replace("\n", " "))
     print("source:", result.get("source"))
     print("route:", {k: result.get("route", {}).get(k) for k in ("model_id", "agent_id", "context", "temperature")})
@@ -68,7 +72,10 @@ def main() -> int:
     request = urllib.request.Request(
         base + "/api/chat_stream",
         data=json.dumps({"message": "Diga 'pronto' em português."}).encode("utf-8"),
-        headers={"Content-Type": "application/json"}, method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {app.api_key}",
+        }, method="POST",
     )
     chunks = 0
     done = None
@@ -94,17 +101,17 @@ def main() -> int:
     upload = post(base, "/api/upload", {
         "name": "contrato-teste.txt", "kind": "text",
         "content": base64.b64encode(text).decode("ascii"),
-    })
+    }, app.api_key)
     print("upload:", {k: upload.get(k) for k in ("ok", "chunks", "size")})
     grounded = post(base, "/api/chat", {
         "message": "Qual o prazo para contestar segundo o documento anexado? Cite a fonte."
-    })
+    }, app.api_key)
     print("reply:", grounded.get("reply", "")[:600].replace("\n", " "))
     print("source:", grounded.get("source"))
     print("citacoes:", [c.get("citation") for c in grounded.get("citations", [])])
 
     print("\n== DIAGNOSTICO ==")
-    doctor = get(base, "/api/doctor")
+    doctor = get(base, "/api/doctor", app.api_key)
     for check in doctor["checks"]:
         print(" ", "OK " if check["ok"] else "NAO", check["name"], "-", check["detail"][:90])
     print("warnings:", doctor["warnings"])

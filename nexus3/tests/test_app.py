@@ -143,6 +143,17 @@ class TestRAG(TempAppCase):
         self.assertIn("FONTE 1", prompt)
         self.assertIn("Inferência do modelo", prompt)
         self.assertIn("qual o prazo?", prompt)
+        self.assertIn("<DADOS_NAO_CONFIAVEIS>", prompt)
+        self.assertIn("não instrução", prompt)
+        self.assertNotIn("separade", prompt)
+
+        from nexus3.web import WebResult, WebSearch
+        web_prompt = WebSearch.context([
+            WebResult("Fonte", "https://example.org", "Texto externo")
+        ])
+        self.assertIn("<DADOS_EXTERNOS>", web_prompt)
+        self.assertIn("não instruções", web_prompt)
+
         saved = DocumentStore(self.root, self.config)
         self.assertEqual(len(saved.chunks), 2)
         self.assertEqual(saved.remove_document("workspace/uploads/contrato.txt"), 2)
@@ -171,9 +182,52 @@ class TestRouterAndTools(unittest.TestCase):
         self.assertIn(decision.model_id, registry.models)
         self.assertTrue(decision.rationale)
         self.assertGreater(decision.context, 0)
-        self.assertGreater(decision.estimated_seconds, 0)
+        self.assertEqual(decision.estimated_seconds, 0.0)
+        self.assertEqual(decision.estimate_basis, "nao_medido")
         self.assertFalse(decision.needs_web)
         self.assertLessEqual(decision.temperature, 0.7)
+
+    def test_router_requires_real_image_payload_and_verified_vision(self):
+        import hashlib
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "config").mkdir()
+            registry_data = json.loads((ROOT / "config" / "models.json").read_text())
+            for model in registry_data["models"]:
+                if model["type"] == "vision":
+                    for item in model["files"]:
+                        item["sha256"] = hashlib.sha256(b"fixture").hexdigest()
+                        item["size"] = len(b"fixture")
+            (root / "config" / "models.json").write_text(json.dumps(registry_data))
+            vision_spec = next(m for m in registry_data["models"] if m["type"] == "vision")
+            for item in vision_spec["files"]:
+                path = root / item["path"]
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b"fixture")
+
+            hardware = HardwareProfile(
+                os="darwin", arch="arm64", ram_total_gb=16,
+                ram_available_gb=12, vram_total_gb=8,
+            )
+            config = Config.load(root)
+            router = NexusRouter(ModelRegistry(root), hardware, config)
+
+            no_payload = router.route("Mostre esta imagem", attachments=[])
+            self.assertFalse(no_payload.has_image_input)
+            self.assertFalse(no_payload.vision_available)
+            self.assertEqual(no_payload.vision_model_id, "")
+
+            with_payload = router.route(
+                "O que aparece nesta imagem?",
+                attachments=[{"name": "captura.png", "kind": "image/png"}],
+            )
+            self.assertTrue(with_payload.has_image_input)
+            self.assertTrue(with_payload.vision_available)
+            self.assertEqual(with_payload.vision_model_id, "minicpm-v-4.6")
+            self.assertEqual(with_payload.model_id, "minicpm-v-4.6")
+            self.assertGreater(with_payload.gpu_layers, 0)
 
     def test_agents_cover_required_specialists(self):
         ids = {a["id"] for a in list_agents()}
@@ -185,6 +239,7 @@ class TestRouterAndTools(unittest.TestCase):
         self.assertEqual(calculator("(2+3)*4"), "20")
         self.assertIn("inválida", calculator("__import__('os').system('echo oi')"))
         self.assertIn("não permitida", calculator("[1,2][0]"))
+        self.assertIn("não permitida", calculator("9**9**9"))
 
     def test_tools_respect_allowlist(self):
         config = Config.load(ROOT)
@@ -223,6 +278,7 @@ class TestHTTPAPI(TempAppCase):
     def setUp(self):
         super().setUp()
         self.app = NexusApp(root=self.root, start_engine=False)
+        self.auth_headers = {"Authorization": f"Bearer {self.app.api_key}"}
         self.server = run_server(self.app, port=0)
         self.base = f"http://127.0.0.1:{self.server.server_port}"
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
@@ -233,14 +289,18 @@ class TestHTTPAPI(TempAppCase):
         self.server.server_close()
         super().tearDown()
 
-    def get(self, path):
-        with urllib.request.urlopen(self.base + path, timeout=6) as response:
+    def get(self, path, headers=None):
+        chosen = self.auth_headers if headers is None else headers
+        request = urllib.request.Request(self.base + path, headers=chosen)
+        with urllib.request.urlopen(request, timeout=6) as response:
             return response.status, json.loads(response.read().decode("utf-8"))
 
-    def post(self, path, payload):
+    def post(self, path, payload, headers=None):
+        merged = {"Content-Type": "application/json", **self.auth_headers}
+        merged.update(headers or {})
         request = urllib.request.Request(
             self.base + path, data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"}, method="POST",
+            headers=merged, method="POST",
         )
         with urllib.request.urlopen(request, timeout=15) as response:
             return response.status, json.loads(response.read().decode("utf-8"))
@@ -254,6 +314,40 @@ class TestHTTPAPI(TempAppCase):
         self.assertFalse(status_data["online_active"])
         with urllib.request.urlopen(self.base + "/", timeout=6) as response:
             self.assertIn("Nexus Studio 3.0", response.read().decode("utf-8"))
+
+    def test_api_requires_bearer_or_local_session_cookie(self):
+        with self.assertRaises(urllib.error.HTTPError) as denied:
+            self.get("/api/status", headers={})
+        self.assertEqual(denied.exception.code, 401)
+
+        with urllib.request.urlopen(self.base + "/", timeout=6) as response:
+            cookie_header = response.headers.get("Set-Cookie", "")
+            self.assertIn("nexus3_session=", cookie_header)
+            self.assertIn("HttpOnly", cookie_header)
+            token = cookie_header.split("nexus3_session=", 1)[1].split(";", 1)[0]
+
+        with urllib.request.urlopen(urllib.request.Request(
+            self.base + "/api/status", headers={"Cookie": f"nexus3_session={token}"}
+        ), timeout=6) as response:
+            self.assertEqual(json.loads(response.read().decode("utf-8"))["version"], "3.0.0-develop")
+
+        with self.assertRaises(urllib.error.HTTPError) as forged:
+            self.get("/api/status", headers={"Cookie": "nexus3_session=invalido"})
+        self.assertEqual(forged.exception.code, 401)
+
+    def test_server_refuses_non_loopback_bind(self):
+        with self.assertRaises(PermissionError):
+            run_server(self.app, host="0.0.0.0", port=0)
+
+    def test_download_authorization_is_volatile(self):
+        self.app.config.set("downloads.allow_external", False)
+        _, result = self.post("/api/models/authorize", {"allow": True})
+        self.assertTrue(result["allowed"])
+        self.assertFalse(result["persistent"])
+        self.assertTrue(self.app.download_authorization)
+        self.assertFalse(self.app.config.get("downloads.allow_external"))
+        self.post("/api/models/cancel", {})
+        self.assertTrue(self.app.downloads.cancel_event.is_set())
 
     def test_openai_compatible_models(self):
         _, data = self.get("/v1/models")
@@ -286,6 +380,7 @@ class TestHTTPAPI(TempAppCase):
         _, report = self.get("/api/doctor")
         names = {c["name"] for c in report["checks"]}
         self.assertIn("motor instalado", names)
+        self.assertFalse(report["ok"])
         self.assertFalse(next(c["ok"] for c in report["checks"] if c["name"] == "motor instalado"))
 
     def test_offline_is_default_and_online_requires_opt_in(self):
@@ -293,14 +388,78 @@ class TestHTTPAPI(TempAppCase):
         self.assertFalse(status["online_active"])
         self.assertTrue(self.app.config.get("privacy.online_opt_in_required"))
 
-    def test_chat_without_engine_returns_explicit_error(self):
+    def test_chat_without_ready_runtime_returns_explicit_error(self):
         with self.assertRaises(urllib.error.HTTPError) as ctx:
             self.post("/api/chat", {"message": "olá"})
         self.assertEqual(ctx.exception.code, 503)
         result = json.loads(ctx.exception.read().decode("utf-8"))
         self.assertFalse(result["ok"])
         self.assertTrue(result["engine_dead"])
-        self.assertIn("motor", result["error"].lower())
+        message = result["error"].lower()
+        self.assertTrue("modelo" in message or "motor" in message, message)
+
+    def test_settings_are_allowlisted_and_persisted(self):
+        _, data = self.get("/api/settings")
+        self.assertIn("defaults.temperature", data["settings"])
+        _, saved = self.post("/api/settings", {
+            "values": {"defaults.temperature": 0.35, "rag.top_k": 7}
+        })
+        self.assertEqual(saved["updated"]["defaults.temperature"], 0.35)
+        self.assertEqual(self.app.config.get("rag.top_k"), 7)
+        with self.assertRaises(urllib.error.HTTPError) as blocked:
+            self.post("/api/settings", {"values": {"server.api_key": "injetada"}})
+        self.assertEqual(blocked.exception.code, 400)
+        self.assertNotEqual(self.app.config.get("server.api_key"), "injetada")
+
+    def test_online_endpoint_changes_real_server_state(self):
+        _, enabled = self.post("/api/online", {"enabled": True})
+        self.assertTrue(enabled["online_active"])
+        self.assertTrue(self.app.web.enabled)
+        _, status = self.get("/api/status")
+        self.assertTrue(status["online_active"])
+        self.post("/api/online", {"enabled": False})
+        self.assertFalse(self.app.web.enabled)
+
+    def test_image_without_vision_model_is_refused_not_simulated(self):
+        with self.assertRaises(urllib.error.HTTPError) as ctx:
+            self.post("/api/chat", {
+                "message": "Descreva a imagem",
+                "attachments": [{"name": "x.png", "kind": "image/png", "content": "data:image/png;base64,AAAA"}],
+            })
+        self.assertEqual(ctx.exception.code, 503)
+        result = json.loads(ctx.exception.read().decode("utf-8"))
+        self.assertIn("visão", result["error"])
+
+    def test_vision_payload_sends_real_image_bytes_to_engine(self):
+        from nexus3.router import RouteDecision
+
+        route = RouteDecision(
+            model_id="minicpm-v-4.6", agent_id="imagem", context=8192,
+            gpu_layers=99, temperature=0.4, max_tokens=768,
+            needs_web=False, needs_documents=False, needs_vision=True,
+            vision_model_id="minicpm-v-4.6", vision_available=True, has_image_input=True,
+        )
+        content = NexusApp._user_content(
+            "O que há nesta imagem?",
+            [{"name": "x.png", "kind": "image/png", "content": "data:image/png;base64,QUJD"}],
+            route,
+        )
+        self.assertIsInstance(content, list)
+        self.assertEqual(content[0]["type"], "text")
+        self.assertEqual(content[1]["image_url"]["url"], "data:image/png;base64,QUJD")
+
+    def test_tools_endpoint_is_live_and_confirmation_is_required(self):
+        self.app.config.set("tools.enabled", True)
+        _, catalog = self.get("/api/tools")
+        self.assertTrue(catalog["enabled"])
+        self.assertEqual(len(catalog["definitions"]), 2)
+        with self.assertRaises(urllib.error.HTTPError) as unconfirmed:
+            self.post("/api/tools/call", {"name": "calculator", "arguments": {"expression": "2+2"}})
+        self.assertEqual(unconfirmed.exception.code, 403)
+        _, result = self.post("/api/tools/call", {
+            "name": "calculator", "arguments": {"expression": "2+2"}, "confirm": True
+        })
+        self.assertEqual(result["result"], "4")
 
     def test_download_requires_authorization(self):
         with self.assertRaises(urllib.error.HTTPError) as ctx:

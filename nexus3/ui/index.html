@@ -96,6 +96,7 @@
           <button class="tab" data-tab="docs" role="tab" type="button">Documentos</button>
           <button class="tab" data-tab="models" role="tab" type="button">Modelos</button>
           <button class="tab" data-tab="health" role="tab" type="button">Diagnóstico</button>
+          <button class="tab" data-tab="settings" role="tab" type="button">Configurações</button>
         </nav>
 
         <div class="tab-content active" id="tab-system">
@@ -138,6 +139,26 @@
         <div class="tab-content" id="tab-health">
           <button id="btnDoctor" class="btn primary block">Executar diagnóstico</button>
           <div id="doctorPanel" class="doctor-panel"><p class="muted">Nenhum diagnóstico executado ainda.</p></div>
+        </div>
+
+        <div class="tab-content" id="tab-settings">
+          <p class="muted">Parâmetros locais salvos na pasta portátil. Chaves de API não são exibidas nem editáveis aqui.</p>
+          <label>Temperatura <input id="setTemperature" type="number" min="0" max="1" step="0.05"></label>
+          <label>Máximo de tokens <input id="setMaxTokens" type="number" min="64" max="8192" step="64"></label>
+          <label>Contexto
+            <select id="setContextStrategy">
+              <option value="auto">Automático</option>
+              <option value="compact">Compacto</option>
+              <option value="full">Máximo compatível</option>
+            </select>
+          </label>
+          <label>Trechos por busca (top_k) <input id="setTopK" type="number" min="1" max="20" step="1"></label>
+          <label><input id="setUseEmbeddings" type="checkbox"> Usar embeddings locais (requer modelo instalado)</label>
+          <label>Timeout da engine (s) <input id="setTimeout" type="number" min="10" max="600" step="10"></label>
+          <label>Suspender engine após inatividade (s) <input id="setIdleSleep" type="number" min="0" max="3600" step="30"></label>
+          <label><input id="setSendDocsExternally" type="checkbox"> Permitir que trechos de documentos entrem em buscas externas</label>
+          <button id="btnSaveSettings" class="btn primary block" type="button">Salvar configuração local</button>
+          <p id="settingsStatus" class="muted">Configuração carregada do arquivo portátil.</p>
         </div>
       </aside>
     </div>

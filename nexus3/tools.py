@@ -41,7 +41,7 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
 _OPERATORS = {
     ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
     ast.Div: operator.truediv, ast.USub: operator.neg, ast.UAdd: operator.pos,
-    ast.Pow: operator.pow, ast.Mod: operator.mod,
+    ast.Mod: operator.mod,
 }
 
 

@@ -42,6 +42,7 @@
     try {
       state.status = await api('/api/status');
       const s = state.status;
+      paintOnline(Boolean(s.online_active));
       $('brandVersion').textContent = `${s.product} · v${s.version}`;
       $('installationId').textContent = 'instalação: ' + s.installation_id;
       $('miniPlatform').textContent = `${s.platform.system} / ${s.platform.arch}`;
@@ -76,7 +77,11 @@
       <div><strong>Agente:</strong> ${escapeHtml(route.agent_id)}</div>
       <div><strong>Contexto:</strong> ${route.context} tokens · <strong>Temperatura:</strong> ${route.temperature}</div>
       <div><strong>Fontes:</strong> ${escapeHtml(route.needs_web ? 'web + local' : 'locais')} · ${escapeHtml(route.needs_documents ? 'documentos' : 'sem documentos')}</div>
-      <div><strong>Estimativa:</strong> ${route.estimated_seconds}s ${route.fallback_used ? '· fallback usado' : ''}</div>
+      <div><strong>Estimativa:</strong> ${route.estimate_basis === 'nao_medido'
+        ? 'não medida (sem telemetria)'
+        : `${escapeHtml(String(route.estimated_seconds))}s (${escapeHtml(route.estimate_basis)})`}
+        ${route.has_image_input ? `· imagem ${route.vision_available ? 'com modelo verificado' : 'sem modelo de visão'}` : ''}
+        ${route.fallback_used ? '· fallback usado' : ''}</div>
       <ul>${(route.rationale || []).map((r) => `<li>${escapeHtml(r)}</li>`).join('')}</ul>`;
   }
 
@@ -284,7 +289,9 @@
         if (target === 'chat') {
           state.attachments.push({
             name: data.name, kind: data.kind, path: data.path,
-            preview: data.preview || '', text: (data.text || '').slice(0, 4000)
+            preview: data.preview || '', text: (data.text || '').slice(0, 4000),
+            // Necessário para enviar pixels reais ao modelo de visão local.
+            content: kindOf(file) === 'image' ? content : ''
           });
           const chip = document.createElement('span');
           chip.className = 'attachment-chip';
@@ -384,14 +391,15 @@
       });
     });
     $('btnDoctor').addEventListener('click', runDoctor);
+    $('btnSettings').addEventListener('click', () => activateTab('settings'));
+    $('btnSaveSettings').addEventListener('click', saveSettings);
+    $('agentSelect').addEventListener('change', (event) => {
+      const option = event.target.selectedOptions[0];
+      $('agentHint').textContent = option ? option.textContent : 'O roteador escolhe conforme a tarefa.';
+    });
     $('docSearch').addEventListener('input', (event) => searchDocs(event.target.value));
     document.querySelectorAll('.tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach((t) => t.classList.remove('active'));
-        tab.classList.add('active');
-        $('tab-' + tab.dataset.tab).classList.add('active');
-      });
+      tab.addEventListener('click', () => activateTab(tab.dataset.tab));
     });
     document.addEventListener('dragover', (event) => event.preventDefault());
     document.addEventListener('drop', (event) => {
@@ -400,7 +408,7 @@
     });
   }
 
-  function setOnline(value) {
+  function paintOnline(value) {
     state.online = value;
     $('btnOffline').classList.toggle('active', !value);
     $('btnOnline').classList.toggle('active', value);
@@ -408,10 +416,66 @@
     $('btnOnline').setAttribute('aria-pressed', String(value));
   }
 
+  async function setOnline(value) {
+    try {
+      const result = await api('/api/online', {
+        method: 'POST', body: JSON.stringify({ enabled: value })
+      });
+      paintOnline(Boolean(result.online_active));
+      await refreshStatus();
+    } catch (err) {
+      showError('Não foi possível alterar o modo online: ' + err.message);
+    }
+  }
+
+  function activateTab(name) {
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.tab-content').forEach((t) => t.classList.toggle('active', t.id === 'tab-' + name));
+  }
+
+  async function loadSettings() {
+    try {
+      const data = await api('/api/settings');
+      const s = data.settings;
+      $('setTemperature').value = s['defaults.temperature'];
+      $('setMaxTokens').value = s['defaults.max_tokens'];
+      $('setContextStrategy').value = s['defaults.context_strategy'];
+      $('setTopK').value = s['rag.top_k'];
+      $('setUseEmbeddings').checked = Boolean(s['rag.use_embeddings']);
+      $('setTimeout').value = s['engine.request_timeout_seconds'];
+      $('setIdleSleep').value = s['engine.idle_sleep_seconds'];
+      $('setSendDocsExternally').checked = Boolean(s['privacy.send_documents_externally']);
+    } catch (err) {
+      showError('Não foi possível carregar configurações: ' + err.message);
+    }
+  }
+
+  async function saveSettings() {
+    const values = {
+      'defaults.temperature': Number($('setTemperature').value),
+      'defaults.max_tokens': Number($('setMaxTokens').value),
+      'defaults.context_strategy': $('setContextStrategy').value,
+      'rag.top_k': Number($('setTopK').value),
+      'rag.use_embeddings': $('setUseEmbeddings').checked,
+      'engine.request_timeout_seconds': Number($('setTimeout').value),
+      'engine.idle_sleep_seconds': Number($('setIdleSleep').value),
+      'privacy.send_documents_externally': $('setSendDocsExternally').checked
+    };
+    try {
+      await api('/api/settings', { method: 'POST', body: JSON.stringify({ values }) });
+      $('settingsStatus').textContent = 'Configuração salva na pasta portátil.';
+    } catch (err) {
+      $('settingsStatus').textContent = 'Falha ao salvar: ' + err.message;
+      showError(err.message);
+    }
+  }
+
   async function init() {
     document.documentElement.dataset.theme = localStorage.getItem('nexus3-theme') || 'dark';
     bindEvents();
-    await Promise.all([refreshStatus(), refreshHistory(), refreshDocs(), loadAgents()]);
+    await Promise.all([
+      refreshStatus(), refreshHistory(), refreshDocs(), loadAgents(), loadSettings()
+    ]);
   }
 
   init().catch((err) => showError('Falha na inicialização: ' + err.message));

@@ -32,3 +32,4 @@ Thumbs.db
 
 # Auditoria local (fora da árvore de distribuição)
 _audit-e2e.log
+_audit/

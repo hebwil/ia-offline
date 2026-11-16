@@ -219,6 +219,10 @@ class DownloadManager:
             if entry:
                 entry["cancel"].set()
 
+    def reset_cancellation(self) -> None:
+        """Libera um novo ciclo de downloads após cancel('*')."""
+        self.cancel_event.clear()
+
     def _progress(self, callback: ProgressCallback | None, phase: str, done: int, total: int, msg: str) -> None:
         if callback:
             try:
@@ -229,6 +233,7 @@ class DownloadManager:
     def ensure_model(self, spec: ModelSpec, callback: ProgressCallback | None = None) -> list[Path]:
         if not self.config.get("downloads.allow_external"):
             raise PermissionError("Downloads externos não autorizados na configuração.")
+        self.reset_cancellation()
         results = []
         for index, item in enumerate(spec.files):
             results.append(self.download_file(item, callback, key=f"{spec.id}:{index}"))
@@ -237,6 +242,11 @@ class DownloadManager:
     def download_file(
         self, item: ModelFile, callback: ProgressCallback | None = None, key: str = ""
     ) -> Path:
+        if not item.sha256 or len(item.sha256.strip()) != 64:
+            raise ValueError(
+                f"Download recusado: {item.path} não possui SHA-256 válido no registro. "
+                "Integridade é obrigatória nesta versão."
+            )
         target = self.guard.resolve(*item.path.split("/"))
         part = target.with_name(target.name + ".part")
         cancel = threading.Event()
@@ -271,7 +281,7 @@ class DownloadManager:
                     while True:
                         if cancel.is_set() or self.cancel_event.is_set():
                             raise DownloadCancelled(f"Download cancelado: {target.name}")
-                        block = response.read(262144)
+                        block = response.read(int(self.config.get("downloads.chunk_bytes") or 262144))
                         if not block:
                             break
                         handle.write(block)
@@ -281,15 +291,18 @@ class DownloadManager:
             raise
         finally:
             self.active.pop(key or item.path, None)
-            self.cancel_event.clear()
+            # O sinal global de cancelamento NÃO é limpo automaticamente:
+            # cancel('*') deve valer para todos os arquivos de um modelo.
+            # Use reset_cancellation() para iniciar um novo ciclo.
 
-        if item.sha256:
-            actual = sha256_file(part)
-            if actual.lower() != item.sha256.lower():
-                part.unlink(missing_ok=True)
-                raise ValueError(
-                    f"Hash inválido para {target.name}: esperado {item.sha256}, obtido {actual}. Arquivo removido."
-                )
+        if not self.config.get("downloads.verify_hash", True):
+            raise PermissionError("Verificação de hash desativada na configuração; download abortado por política.")
+        actual = sha256_file(part)
+        if actual.lower() != item.sha256.lower():
+            part.unlink(missing_ok=True)
+            raise ValueError(
+                f"Hash inválido para {target.name}: esperado {item.sha256}, obtido {actual}. Arquivo removido."
+            )
         self._progress(callback, "verified", done, total, f"Hash verificado: {target.name}")
         os.replace(part, target)
         return target

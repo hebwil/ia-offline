@@ -25,7 +25,7 @@ from .config import Config
 from .hardware import HardwareProfile
 from .models import DownloadCancelled, ModelFile, ProgressCallback, ModelSpec, sha256_file
 from .platform import PlatformInfo, ensure_executable
-from .security import PathGuard, ProcessRegistry, redact
+from .security import AtomicWriter, PathGuard, ProcessRegistry, redact
 
 # SHA-256 obtidos do campo `digest` da GitHub API em 2026-11-16.
 ENGINE_BUILD = "b12444"
@@ -186,12 +186,34 @@ class EngineManager:
         binary = self.binary_path()
         installed = bool(binary)
         verified = False
-        if installed and manifest and (self.engine_dir / manifest["file"]).exists():
-            archive = self.engine_dir / manifest["file"]
+        verification = "nao-verificado"
+        marker_rel = f"state/engine-{self.platform_info.engine_key}-sha256.txt"
+        marker = self.guard.resolve(*marker_rel.split("/"))
+        if installed and manifest:
+            # Verifica o BINÁRIO instalado, não o arquivo baixado. O marker
+            # antigo continha o hash do arquivo; isso era interpretado como
+            # falha permanente. Migramos somente se o arquivo oficial também
+            # conferir com o hash publicado.
             try:
-                verified = sha256_file(archive) == manifest["sha256"]
+                archive = self.engine_dir / manifest["file"]
+                expected = marker.read_text(encoding="ascii").strip().lower() if marker.exists() else ""
+                if expected == str(manifest["sha256"]).lower():
+                    expected = ""
+                if not expected and archive.is_file():
+                    if sha256_file(archive) == str(manifest["sha256"]).lower():
+                        expected = sha256_file(binary)
+                        AtomicWriter(self.root).write_bytes(
+                            marker_rel, expected.encode("ascii")
+                        )
+                        verification = "binario-derivado-de-arquivo-oficial"
+                verified = bool(expected) and sha256_file(binary) == expected
+                if verified and verification == "nao-verificado":
+                    verification = "binario-verificado"
+                if not verified and archive.is_file():
+                    verification = "arquivo-oficial-divergente-do-binario"
             except OSError:
                 verified = False
+                verification = "indisponivel"
         return {
             "key": self.platform_info.engine_key,
             "build": ENGINE_BUILD,
@@ -199,6 +221,7 @@ class EngineManager:
             "binary": str(binary.relative_to(self.root)) if binary else "",
             "archive_present": bool(manifest and (self.engine_dir / manifest["file"]).exists()),
             "archive_verified": verified,
+            "verification": verification,
             "download_url": ENGINE_URL_TEMPLATE.format(build=ENGINE_BUILD, file=manifest["file"]) if manifest else "",
             "sha256": manifest["sha256"] if manifest else "",
             "size_bytes": manifest["size"] if manifest else 0,
@@ -234,6 +257,10 @@ class EngineManager:
         if not binary:
             raise EngineError("O pacote oficial não continha llama-server.")
         ensure_executable(binary)
+        AtomicWriter(self.root).write_bytes(
+            f"state/engine-{self.platform_info.engine_key}-sha256.txt",
+            sha256_file(binary).encode("ascii"),
+        )
         return binary
 
     # --------------------------------------------------------------- execução
@@ -274,6 +301,9 @@ class EngineManager:
             "--api-key", api_key,
             "--no-context-shift",
         ]
+        idle = int(self.config.get("engine.idle_sleep_seconds") or 0)
+        if idle > 0:
+            cmd += ["--sleep-idle-seconds", str(idle)]
         if mmproj is not None:
             cmd += ["-mm", str(mmproj), "--mmproj-offload"]
         return cmd
@@ -314,18 +344,21 @@ class EngineManager:
                 pid=proc.pid, port=port, model_id=spec.id, backend=self.platform_info.engine_key,
                 context=context, started_at=time.time(), log_path=str(log_path.relative_to(self.root)),
             )
+            # Atribui ANTES da sonda: se a health check falhar, stop() precisa
+            # conhecer o PID recém-criado. Na v3.0 inicial isso vazava processo.
+            self.running = running
             if not self.wait_health(port, timeout=timeout):
-                self.stop()
+                self.processes.stop(proc.pid)
+                self.running = None
                 tail = ""
                 try:
-                    tail = redact(log_path.read_text(errors="replace")[-800:])
-                except OSError:
-                    pass
+                    tail = redact(log_path.read_text(errors="replace")[-1200:])
+                except OSError as exc:
+                    tail = f"(log indisponível: {type(exc).__name__})"
                 raise EngineError(
                     "llama-server não ficou pronto no prazo. Verifique o modelo e o log. "
                     + ("Últimas linhas: " + tail if tail else "")
                 )
-            self.running = running
             return running
 
     def wait_health(self, port: int, timeout: float = 90.0) -> bool:
@@ -416,13 +449,9 @@ class EngineManager:
                     continue
 
     def shutdown(self) -> list[int]:
-        stopped = []
-        if self.vision:
-            if self.processes.stop(self.vision.pid):
-                stopped.append(self.vision.pid)
-            self.vision = None
-        if self.running:
-            if self.processes.stop(self.running.pid):
-                stopped.append(self.running.pid)
-            self.running = None
+        """Encerra todos os processos registrados por esta instância, inclusive
+        os que falharam a health check ou foram trocados durante a sessão."""
+        stopped = self.processes.stop_all()
+        self.vision = None
+        self.running = None
         return stopped
