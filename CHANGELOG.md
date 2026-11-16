@@ -2,20 +2,20 @@
 
 ## 3.0.0-preview.1 — 2026-11-16
 
-Primeira Pre-release pública. Tag `v3.0.0-preview.1` sobre o commit homologado.
+Primeira Pre-release pública. Tag `v3.0.0-preview.1` a ser criada sobre o commit homologado.
 
 ### Adicionado desde o develop
 - Nexus Lite e Nexus Offline Complete: `nexus3.py build --profile {lite|offline|all}`.
 - `nexus3.py update <pacote>`: atualização que preserva dados, modelos e configuração.
-- Homologação real por CI (`scripts/homologate.py`): 10 checks obrigatórios com inferência real, SSE, RAG, API e shutdown — em `windows-latest`, `ubuntu-latest` e `macos-14` (ARM64).
+- Infraestrutura de homologação real por CI (`scripts/homologate.py`): 10 checks obrigatórios com inferência real, SSE, RAG, API e shutdown — matriz configurada em `windows-latest`, `ubuntu-latest` e `macos-latest` (ARM64).
 - Launchers com checagem de Python 3.10+, validação de raiz e caminhos relativos.
 - `doctor --informational` para diagnóstico no CI sem gate de prontidão.
 - 12 testes de portabilidade + 6 testes de empacotamento (suíte: 64 testes).
 - `dist/SHA256SUMS.txt` com os hashes dos pacotes publicados.
 
 ### Homologação
-- Windows x64 e Linux x64: inferência real comprovada por runner nativo no CI.
-- macOS ARM64: E2E real local, pacote Offline Complete extraído em pasta limpa e testado, CI `macos-14`.
+- Windows x64 e Linux x64: job nativo de CI configurado; aguardando execução e evidência da inferência real.
+- macOS ARM64: E2E real local, pacote Offline Complete extraído em pasta limpa e testado; CI em `macos-latest` em validação.
 - Windows ARM64, Linux ARM64 e macOS Intel permanecem experimentais (sem teste real).
 
 ### Nota

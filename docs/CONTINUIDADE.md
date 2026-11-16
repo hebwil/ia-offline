@@ -65,7 +65,7 @@ Relatórios: `_audit/00-ESTADO-ORIGINAL.md`, `_audit/02-RELATORIO-FINAL.md`, `v3
 
 ---
 
-## Sessão 2026-11-16 — Etapa 3: Prioridade 3 — Distribuição profissional ✅ (commit pendente)
+## Sessão 2026-11-16 — Etapa 3: Prioridade 3 — Distribuição profissional ✅ (commit concluído)
 
 **Módulo novo:** `nexus3/packaging.py` — construção de dois perfis, com verificação de hash e atualização preservadora.
 
@@ -89,27 +89,40 @@ Relatórios: `_audit/00-ESTADO-ORIGINAL.md`, `_audit/02-RELATORIO-FINAL.md`, `v3
 
 **Testes:** 6 novos testes em `nexus3/tests/test_packaging.py`. Total: 58 → **64 testes** (a última execução completa foi interrompida por restrição de ambiente — ver abaixo; a lógica falha encontrada era um bug no teste, já corrigido).
 
-**⚠️ Commit pendente — bloqueio de ambiente:** após uma operação de limpeza com escalonamento, o Security Center do sandbox passou a bloquear operações de delete/temp, incluindo arquivos temporários internos do Git (`unable to write new index file`) e do `tempfile` (`No usable temporary directory found`). O estado do repositório está íntegro (HEAD `99886ec`, `.git/index` presente, todos os arquivos e pacotes em disco). **Ação necessária na próxima sessão:** fazer o commit dos arquivos de Prioridade 3 assim que o ambiente permitir:
-```
-git add nexus3/packaging.py nexus3/tests/test_packaging.py nexus3.py docs/CONTINUIDADE.md
-git commit -m "Prioridade 3: pacotes Nexus Lite e Offline Complete + atualizacao preservadora"
-```
-Não foi feito push. branca `main` e release 2.0 intactas.
+**Bloqueio de ambiente resolvido:** após uma operação de limpeza com escalonamento, o Security Center do sandbox bloqueou temporariamente operações de delete/temp, incluindo arquivos temporários internos do Git (`unable to write new index file`) e do `tempfile` (`No usable temporary directory found`). O estado do repositório permaneceu íntegro. Assim que o ambiente voltou a permitir escrita, o commit foi concluído: `2cfd51a` — *"Prioridade 3: pacotes Nexus Lite e Offline Complete + atualizacao preservadora"*. Nenhum push foi feito nesta etapa; `main` e a release 2.0 permanecem intactas.
+
+---
+
+## Sessão 2026-11-16 — Etapa 4: fechamento, homologação e publicação (em execução)
+
+**Correções objetivas aplicadas antes do push:**
+- Matriz de homologação do CI: runner `macos-14` (descontinuado e x64) substituído por `macos-latest` (Apple Silicon ARM64) — o job `homologacao` agora aponta para a arquitetura que pretende homologar.
+- `README.md` e `CHANGELOG.md` deixaram de afirmar homologação Windows/Linux por CI antes da execução do runner; os status passaram a distinguir evidência local de evidência pendente de CI.
+- Nenhuma funcionalidade foi removida ou reconstruída.
+
+**Evidências locais já produzidas:**
+- Suíte completa após as correções: **64/64 testes OK**.
+- Homologação real local em macOS ARM64 (`scripts/homologate.py`): **10/10 checks PASS** — motor verificado, processo ativo, `/health`, chat real, justificativa do roteador, SSE, citação RAG, checks críticos do doctor e shutdown limpo. Evidência em `logs/homologation-evidence.json`.
+- Pacote Offline Complete extraído em pasta limpa: hashes conferidos, **18 symlinks preservados** e inferência real executada a partir da extração.
+- `dist/SHA256SUMS.txt` gerado e verificado para os três pacotes publicáveis.
+- `gh` autenticado como `hebwil` com permissão `ADMIN` no repositório público `hebwil/ia-offline`.
+
+**Estado no momento desta correção:** branch `develop/v3.0` em `fedc167`, sem remote configurado localmente, `main` remota e tags/releases `v1.0.0`/`v2.0.0` intactas. Próxima ação: commit das correções, push da branch, execução e verificação da CI antes de qualquer tag/release.
 
 ---
 
 ## Matriz de compatibilidade (atualizada a cada etapa)
 
-| Plataforma | Launcher | Motor no manifesto | Teste real | Teste estático/CI | Homologada? |
+| Plataforma | Launcher | Motor no manifesto | Evidência real | CI nativa (inferência real) | Homologada? |
 |---|---|---|---|---|---|
-| Windows x64 | `start-windows.bat` | win-cpu-x64 | ❌ | ✅ estático + CI configurado | ❌ |
-| Windows arm64 | `start-windows.bat` | win-cpu-arm64 | ❌ | ✅ mapeamento testado | ❌ |
-| macOS arm64 | `start-macos.command` | macos-arm64 | ✅ E2E + launcher real | ✅ 58 testes | ⚠️ funcional, não homologada |
-| macOS x64 (Intel) | `start-macos.command` | macos-x64 | ❌ | ✅ mapeamento testado | ❌ |
-| Linux x64 | `start-linux.sh` | ubuntu-x64 | ❌ | ✅ estático + CI configurado | ❌ |
-| Linux arm64 | `start-linux.sh` | ubuntu-arm64 | ❌ | ✅ mapeamento testado | ❌ |
+| Windows x64 | `start-windows.bat` | win-cpu-x64 | ❌ | configurada em `windows-latest` — aguardando execução | ❌ (aguardando CI) |
+| Windows arm64 | `start-windows.bat` | win-cpu-arm64 | ❌ | ❌ | ❌ (experimental) |
+| macOS arm64 | `start-macos.command` | macos-arm64 | ✅ E2E local, pacote extraído e testado, 10/10 checks | configurada em `macos-latest` — aguardando execução | ✅ local; CI pendente |
+| macOS x64 (Intel) | `start-macos.command` | macos-x64 | ❌ | ❌ | ❌ (experimental) |
+| Linux x64 | `start-linux.sh` | ubuntu-x64 | ❌ | configurada em `ubuntu-latest` — aguardando execução | ❌ (aguardando CI) |
+| Linux arm64 | `start-linux.sh` | ubuntu-arm64 | ❌ | ❌ | ❌ (experimental) |
 
-**Nota:** "Teste real" = execução em hardware/SO da plataforma. "Teste estático/CI" = análise de código ou runner, **não** equivale a homologação. Nenhuma plataforma está homologada; macOS arm64 é a única com evidência real de funcionamento ponta a ponta.
+**Nota:** "Evidência real" = inferência executada no SO/hardware da plataforma. Job de homologação por CI com inferência real é obrigatório para declarar Windows x64, Linux x64 e macOS ARM64 homologados na release. Até a CI concluir, apenas macOS ARM64 possui homologação local comprovada.
 
 **Pacotes por plataforma:** Lite (código) serve a todas; Offline Complete construído apenas para **macos-arm64**, única com motor e modelo verificados localmente. Offline para Windows/Linux depende de homologação + download autorizado dos binários dessas plataformas.
 
@@ -117,7 +130,8 @@ Não foi feito push. branca `main` e release 2.0 intactas.
 
 ## Pendências reais (carreadas — ver `docs/LIMITACOES.md`)
 
-- Windows, Linux e macOS Intel sem teste em hardware real.
+- Windows x64 e Linux x64: homologação depende da execução verde do job `homologacao` na CI nativa.
+- Windows ARM64, Linux ARM64 e macOS Intel: experimentais, sem teste real.
 - GPU CUDA/ROCm/Vulkan não homologada.
 - OCR depende de `tesseract` no PATH.
 - Embeddings/RAG semântico desativado por padrão.
@@ -128,6 +142,8 @@ Não foi feito push. branca `main` e release 2.0 intactas.
 
 ## Próximos passos
 
-1. Concluir Prioridade 2: revisar/corrigir launchers, validar caminhos relativos/permissões/processos, executar verificações automatizadas por plataforma.
-2. Concluir Prioridade 3: pacotes Nexus Lite e Nexus Offline Complete para plataformas com evidência.
-3. Atualizar esta matriz e o `docs/LIMITACOES.md` com resultados reais.
+1. Fazer o commit destas correções e configurar o remote oficial `https://github.com/hebwil/ia-offline`.
+2. Fazer push de `develop/v3.0` e acompanhar a CI: 64 testes, verificações estáticas e job `homologacao` com inferência real nas três plataformas obrigatórias.
+3. Se houver falha, corrigir somente a causa afetada e repetir testes/verificações de regressão.
+4. Com a CI verde, atualizar matriz, README e CHANGELOG com as evidências, validar pacotes/checksums e repetir a CI no commit final.
+5. Criar tag `v3.0.0-preview.1`, publicar a Pre-release com pacotes e `SHA256SUMS.txt`, verificar URLs públicas e confirmar que `main`, `v1.0.0`, `v2.0.0` e a release 2.0 permanecem intactos.

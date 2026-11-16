@@ -4,16 +4,16 @@
 
 > IA para quem precisa de resultado, não de assinatura.
 
-Status: **`v3.0.0-preview.1` — Pre-release.** Homologação por CI em execução; veja a matriz abaixo e `docs/CONTINUIDADE.md`.
+Status: **`v3.0.0-preview.1` — Pre-release.** Homologação final em validação na CI desta branch; veja a matriz abaixo e `docs/CONTINUIDADE.md`.
 As tags `v1.0.0` e `v2.0.0` e todos os arquivos da versão 2.0 permanecem intactos.
 
 **Matriz de compatibilidade**
 
 | Plataforma | Status | Evidência |
 |---|---|---|
-| Windows x64 | homologada via CI | runner `windows-latest`, inferência real (job `homologacao`) |
-| Linux x64 | homologada via CI | runner `ubuntu-latest`, inferência real (job `homologacao`) |
-| macOS ARM64 | homologada | E2E real local + pacote Offline Complete extraído e testado + CI `macos-14` |
+| Windows x64 | aguardando evidência da CI | runner nativo `windows-latest`, job `homologacao` com inferência real |
+| Linux x64 | aguardando evidência da CI | runner nativo `ubuntu-latest`, job `homologacao` com inferência real |
+| macOS ARM64 | homologada localmente; CI em validação | E2E real local + pacote Offline Complete extraído e testado + job `homologacao` em `macos-latest` |
 | Windows ARM64 · Linux ARM64 · macOS Intel | experimentais | binário no manifesto, sem teste real — não homologadas |
 
 > "Homologada" exige inferência real comprovada, não apenas presença do binário no manifesto.
@@ -83,7 +83,7 @@ No Windows: `scripts\start-windows.bat`. No macOS: `scripts/start-macos.command`
 | **Nexus Lite** (`.zip` / `.tar.gz`, ~400 KB) | código, UI, scripts, docs | obtém motor e modelo no primeiro uso, mediante autorização |
 | **Nexus Offline Complete** (`.tar.gz`, ~618 MB) | código + llama-server b12444 + Qwen3 0.6B Q8_0, todos verificados | funciona sem internet após a preparação |
 
-Pacote Offline Complete publicado apenas para **macOS ARM64** (plataforma com motor e modelo verificados e inferência real comprovada). Conferência de integridade em `dist/SHA256SUMS.txt`.
+O pacote Offline Complete desta preview destina-se apenas a **macOS ARM64** (plataforma com motor e modelo verificados e inferência real comprovada localmente). Conferência de integridade em `dist/SHA256SUMS.txt`.
 
 ---
 

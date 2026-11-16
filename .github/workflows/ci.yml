@@ -79,7 +79,7 @@ jobs:
             plataforma: win-cpu-x64
           - os: ubuntu-latest
             plataforma: ubuntu-x64
-          - os: macos-14          # Apple Silicon (arm64)
+          - os: macos-latest      # Apple Silicon (arm64)
             plataforma: macos-arm64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
