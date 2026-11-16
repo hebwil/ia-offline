@@ -12,7 +12,7 @@
 ![Linux](https://img.shields.io/badge/Linux-x64-333333?style=flat-square)
 ![macOS](https://img.shields.io/badge/macOS-ARM64-333333?style=flat-square)
 
-**[⬇️ Baixar a versão 3.0](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1)** · **[Instalação](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/INSTALACAO.md)** · **[Arquitetura](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/ARQUITETURA.md)** · **[Testes](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/TESTES.md)** · **[Limitações](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/LIMITACOES.md)**
+**[⬇️ Downloads diretos](#baixe-a-versão-atual--links-diretos)** · **[Guia de instalação](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/BAIXAR-E-INSTALAR.md)** · **[Instruções técnicas](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/INSTALACAO.md)** · **[Arquitetura](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/ARQUITETURA.md)** · **[Testes](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/TESTES.md)** · **[Limitações](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/LIMITACOES.md)**
 
 </div>
 
@@ -35,6 +35,21 @@
 ![Diagrama da arquitetura Nexus 3.0](https://raw.githubusercontent.com/hebwil/ia-offline/develop/v3.0/assets/nexus-architecture.svg)
 
 Interface web → servidor local Python 3.10+ → roteador/agentes/documentos → motor llama.cpp e modelos GGUF. O código do núcleo não exige instalação de pacotes por `pip`, mas **exige Python 3.10+ já disponível ou runtime portátil configurado**.
+
+## Baixe a versão atual — links diretos
+
+> **v3.0.0-preview.1 é o lançamento público mais novo para testes.** A v2.0.0 ainda aparece como **Latest** no GitHub porque é a última versão **estável**. Isso não significa que a v3.0 esteja ausente. **Não renomear uma Preview como estável apenas para mudar o selo.**
+
+| Plataforma | Download direto | O que vem incluído |
+|---|---|---|
+| Windows 10/11 x64 | [**⬇️ Baixar Nexus Lite para Windows (.zip)**](https://github.com/hebwil/ia-offline/releases/download/v3.0.0-preview.1/Nexus-Lite-3.0-all-20261116.zip) | Código, interface e inicializador; **baixa motor e modelo no primeiro uso** |
+| Linux x64 | [**⬇️ Baixar Nexus Lite para Linux (.tar.gz)**](https://github.com/hebwil/ia-offline/releases/download/v3.0.0-preview.1/Nexus-Lite-3.0-all-20261116.tar.gz) | Código, interface e inicializador; **baixa motor e modelo no primeiro uso** |
+| Mac Apple Silicon (M1–M5) | [**⬇️ Baixar Nexus Offline Complete (.tar.gz)**](https://github.com/hebwil/ia-offline/releases/download/v3.0.0-preview.1/Nexus-Offline-Complete-3.0-macos-arm64-20261116.tar.gz) | **Motor e Qwen3 0.6B incluídos**, sem downloads para o primeiro chat |
+| Mac Apple Silicon (versão leve) | [Baixar Nexus Lite (.tar.gz)](https://github.com/hebwil/ia-offline/releases/download/v3.0.0-preview.1/Nexus-Lite-3.0-all-20261116.tar.gz) | Exige preparar motor e modelo |
+
+**📖 [Instruções completas para baixar, instalar e iniciar](https://github.com/hebwil/ia-offline/blob/develop/v3.0/docs/BAIXAR-E-INSTALAR.md)** · **[Todos os anexos da Preview](https://github.com/hebwil/ia-offline/releases/tag/v3.0.0-preview.1)** · **[SHA256SUMS.txt](https://github.com/hebwil/ia-offline/releases/download/v3.0.0-preview.1/SHA256SUMS.txt)**
+
+**Requisito:** Python 3.10+ disponível. O Lite precisa de internet na primeira preparação; o pacote Offline Complete publicado é **somente para macOS ARM64**. Os arquivos automáticos “Source code” do GitHub **não** substituem esses pacotes.
 
 ## Downloads: escolha o pacote certo
 
