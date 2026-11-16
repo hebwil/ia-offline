@@ -67,3 +67,42 @@ jobs:
           print('manifesto íntegro' if ok else 'falha de integridade')
           sys.exit(0 if ok else 1)
           PY
+
+  # Homologação: INFERÊNCIA REAL com motor e modelo baixados e verificados.
+  # Estes jobs são a evidência de homologação — selftest/doctor NÃO bastam.
+  homologacao:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            plataforma: win-cpu-x64
+          - os: ubuntu-latest
+            plataforma: ubuntu-x64
+          - os: macos-14          # Apple Silicon (arm64)
+            plataforma: macos-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Confirmar arquitetura do runner
+        shell: bash
+        run: |
+          echo "OS=${{ runner.os }} ARCH=$(uname -m) PLATAFORMA=${{ matrix.plataforma }}"
+          python -c "from nexus3.platform import detect_platform; p=detect_platform(); print('engine_key:',p.engine_key); assert p.engine_key=='${{ matrix.plataforma }}', f'esperado ${{ matrix.plataforma }}, obtido {p.engine_key}'"
+      - name: Instalar motor verificado (download com SHA-256)
+        run: python nexus3.py setup --yes
+      - name: Instalar modelo Qwen3 0.6B verificado (SHA-256)
+        run: python nexus3.py models install qwen3-0.6b-q8 --yes
+      - name: Homologação — inferência real, SSE, RAG, API e shutdown
+        run: python -u scripts/homologate.py
+      - name: Publicar evidência de homologação
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: homologacao-${{ matrix.plataforma }}
+          path: logs/homologation-evidence.json
+          if-no-files-found: warn
